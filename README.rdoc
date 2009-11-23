@@ -1,6 +1,6 @@
 = dm-tpcc
 
-Description goes here.
+This is a DataMapper specific implementation of the TPC-C Standard. Information on TPC-C can be found through the Transaction Processing Council (TPC) website.
 
 == Note on Patches/Pull Requests
  
@@ -14,4 +14,4 @@ Description goes here.
 
 == Copyright
 
-Copyright (c) 2009 irjudson. See LICENSE for details.
+Copyright (c) 2009 Montana State University. See LICENSE for details.
