@@ -13,15 +13,17 @@ DataMapper.setup(:default, "mysql://localhost/tpcc")
 
 #
 # This sets up the database/repository connections and creates the database structure
+#  Pass the repository to use to setup
 #
-DataMapper::TPCC.setup # :default is default
+DataMapper::TPCC.setup :default
 
 #
 # This loads the initial test data into the database
+#  Pass a scale factor which is a number of warehouses to create
 #
-DataMapper::TPCC::load 1 # Scale factor, number of warehouses
+DataMapper::TPCC::load 1
 
 #
 # This measures the performance of the database
 #
-#DataMapper::TPCC::benchmark
+DataMapper::TPCC::benchmark

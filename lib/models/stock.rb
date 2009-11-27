@@ -21,7 +21,7 @@ class Stock
   has n, :order_lines
   
   belongs_to :warehouse
-  belongs_to :item
+  belongs_to :item, :required => false
 end
 
 Stock.fixture {{
@@ -40,5 +40,5 @@ Stock.fixture {{
   :order_count => /\d{4}/.gen,
   :remote_count => /\d{4}/.gen,
   :data => /[:sentence:]/.gen[1..50],
-  :order_lines => 3.of { OrderLine.pick }
+  :order_lines => 3.of { OrderLine.make }
 }}

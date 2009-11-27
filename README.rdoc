@@ -2,6 +2,20 @@
 
 This is a DataMapper specific implementation of the TPC-C Standard. Information on TPC-C can be found through the Transaction Processing Council (TPC) website.
 
+= TODO
+
+* Refine initial data load to ensure relationships, types, values, and objects are used appropriately
+* Implement benchmarks
+
+Suggestions from others:
+
+* Decimal types for money?
+* Property validations?
+* String properties should/could use a range [1..20] instead of a length => 20
+* dm-validations & dm-constraints to find hidden validation errors
+* define :precision and :scale properties on Float properties
+* define :minimum (0, 1) on integer properties to avoid negative values
+
 == Note on Patches/Pull Requests
  
 * Fork the project.

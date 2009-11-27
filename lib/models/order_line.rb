@@ -11,7 +11,7 @@ class OrderLine
   property :district_information, String, :length => 24
   
   belongs_to :stock
-  belongs_to :order
+  belongs_to :order, :required => false
   
   has 1, :district, :through => :order
   has 1, :warehouse, :through => :district

@@ -15,7 +15,5 @@ Item.fixture {{
   :name => /\w+/.gen,
   :price => /\d{5}\.\d{2}/.gen,
   :data => /[:sentence:]/.gen[1..50],
-  
-  # 100000 for production
-#  :stocks => 10.of { Stock.pick }
+  :stocks => 100000.of { Stock.pick }
 }}

@@ -1,7 +1,7 @@
 class District
   include DataMapper::Resource
 
-  property :id, Serial, :key => true
+  property :id, Serial
   property :name, String, :length => 10
   property :street1, String, :length => 20
   property :street2, String, :length => 20
@@ -28,6 +28,5 @@ District.fixture {{
   :tax => /\d{4}\.\d{4}/.gen,
   :ytd => /\d{12}\.\d{2}/.gen,
   :next_order_number => /\d/.gen,
-  # Make this 3000 when it's working
-  :customers => 1.of { Customer.make }
+  :customers => 3000.of { Customer.make }
 }}

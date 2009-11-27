@@ -1,7 +1,7 @@
 class Customer
   include DataMapper::Resource
 
-  property :id, Serial, :key => true
+  property :id, Serial
   property :first, String, :length => 16
   property :middle, String, :length => 2
   property :last, String, :length => 16
