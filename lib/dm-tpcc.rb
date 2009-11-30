@@ -1,7 +1,9 @@
 require 'rubygems'
 require 'pathname'
+require 'benchmark'
 require 'dm-core'
 require 'dm-sweatshop'
+require 'dm-validations'
 
 modeldir = Pathname(__FILE__).dirname.expand_path / 'models'
 tpccdir = Pathname(__FILE__).dirname.expand_path / 'tpcc'

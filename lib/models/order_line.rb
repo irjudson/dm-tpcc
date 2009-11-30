@@ -10,7 +10,7 @@ class OrderLine
   property :amount, Float
   property :district_information, String, :length => 24
   
-  belongs_to :stock
+  belongs_to :stock, :required => false
   belongs_to :order, :required => false
   
   has 1, :district, :through => :order

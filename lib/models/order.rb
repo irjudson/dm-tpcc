@@ -22,6 +22,7 @@ Order.fixture {{
   :all_local => /\d{1}/.gen,
   :created => DateTime.now,
   # This should be randomly 0 or 1, not always 1
-  :new_orders => 1.of { NewOrder.make },
-  :order_lines => (rand(10)+5).of { OrderLine.pick }
+  # :new_orders => 1.of { NewOrder.make },
+  :order_lines => 10.of { OrderLine.pick }  
+#  :order_lines => (rand(10)+5).of { OrderLine.pick }
 }}

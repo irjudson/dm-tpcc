@@ -4,6 +4,9 @@
 #
 require 'lib/dm-tpcc'
 
+#logger = DataMapper::Logger.new(STDOUT, 3)
+DataMapper.logger.auto_flush = true
+
 #
 # Connect to a database to test
 #

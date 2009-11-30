@@ -52,5 +52,5 @@ Customer.fixture {{
   :delivery_count => /\d{4}/.gen,
   :data => /[:sentence:]/.gen[1..500],
   :orders => 1.of { Order.make },
-  :histories => 1.of { History.make }
+  :histories => 1.of { History.pick }
 }}

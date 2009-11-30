@@ -40,5 +40,5 @@ Stock.fixture {{
   :order_count => /\d{4}/.gen,
   :remote_count => /\d{4}/.gen,
   :data => /[:sentence:]/.gen[1..50],
-  :order_lines => 3.of { OrderLine.make }
+  :order_lines => 3.of { OrderLine.pick }
 }}

@@ -6,7 +6,7 @@ class History
   property :amount, Float
   property :data, String, :length => 24
   
-  belongs_to :customer
+  belongs_to :customer, :required => false
   
   has 1, :district, :through => :customer
   has 1, :warehouse, :through => :district

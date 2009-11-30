@@ -6,6 +6,7 @@ This is a DataMapper specific implementation of the TPC-C Standard. Information 
 
 * Refine initial data load to ensure relationships, types, values, and objects are used appropriately
 * Implement benchmarks
+* Create Generate, Save, and Load mechanisms for test data so that it can be quickly loaded when generation isn't desired.
 
 Suggestions from others:
 
