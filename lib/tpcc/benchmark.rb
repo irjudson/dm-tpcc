@@ -30,6 +30,10 @@ module DataMapper
      end
      
      def delivery_transaction
+       # Warehouse id is constant
+       # A carrier id is randomly selected between 1 and 10
+       # A delivery date is created from the current time
+       #
        raise NotImplementedError
      end
      
