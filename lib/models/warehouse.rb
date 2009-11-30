@@ -24,6 +24,6 @@ Warehouse.fixture {{
   :zip => /\d{9}/.gen,
   :tax => /\d{4}\.\d{4}/.gen,
   :ytd => /\d{12}\.\d{2}/.gen,
-  :stocks => 100000.of { Stock.make },
-  :districts => 10.of { District.make }
+  :stocks => 100000.of { Stock.pick },
+  :districts => 10.of { District.pick }
 }}

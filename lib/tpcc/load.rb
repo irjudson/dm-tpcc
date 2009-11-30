@@ -20,53 +20,24 @@ module DataMapper
       }
 
       total_time = ::Benchmark.realtime {
-        make_history(scale[:history])
-      
-        make_new_orders(scale[:new_order])
-    
-        make_order_lines(scale[:order_line])
-
-        make_warehouse_tree(scale[:warehouses])
-      
-        make_items(scale[:item])
+        make_thing(scale[:history], History)
+        make_thing(scale[:new_order], NewOrder)
+        make_thing(scale[:order_line], OrderLine)
+        make_thing(scale[:order], Order)
+        make_thing(scale[:customer], Customer)
+        make_thing(scale[:stock], Stock)
+        make_think(scale[:district], District)
+        make_thing(scale[:warehouse], Warehouse)
+        make_thing(scale[:item], Item)
       }
       
       puts "Created Initial Dataset in #{total_time} seconds."
     end
     
     def self.make_thing(number, klass)
-      duration = ::Benchmark.realtime { self.transaction.commit { number.time { klass.gen } } }
+      transaction = DataMapper::Transaction.new(repository(:default))
+      duration = ::Benchmark.realtime { transaction.commit { number.times { klass.gen } } }
       puts "Created #{number} #{klass.name} instances in #{"%.3f" % duration} seconds."
-    end
-    
-    def self.make_history(number)
-      transaction = DataMapper::Transaction.new(repository(:default))
-      duration = ::Benchmark.realtime { transaction.commit { number.times { History.gen } } }
-      puts "Created #{number} History instances in #{"%.3f" % duration} seconds."
-    end
-    
-    def self.make_new_orders(number)
-      transaction = DataMapper::Transaction.new(repository(:default))
-      duration = ::Benchmark.realtime { transaction.commit { number.times { NewOrder.gen } } }      
-      puts "Created #{number} NewOrder instances in #{"%.3f" % duration} seconds."
-    end
-    
-    def self.make_order_lines(number)
-      transaction = DataMapper::Transaction.new(repository(:default))
-      duration = ::Benchmark.realtime {transaction.commit { number.times { OrderLine.gen } } }
-      puts "Created #{number} OrderLine instances in #{"%.3f" % duration} seconds."        
-    end
-    
-    def self.make_warehouse_tree(number)
-      transaction = DataMapper::Transaction.new(repository(:default))
-      duration = ::Benchmark.realtime { transaction.commit { number.times { Warehouse.gen } } }
-      puts "Created #{number} Warehouse instances in #{"%.3f" % duration} seconds."
-    end
-    
-    def self.make_items(number)
-      transaction = DataMapper::Transaction.new(repository(:default))
-      duration = ::Benchmark.realtime { transaction.commit { number.times { Item.gen } } }
-      puts "Created #{number} Item instances in #{"%.3f" % duration} seconds."
     end
   end
 

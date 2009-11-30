@@ -15,7 +15,7 @@ class District
 
   has n, :customers
   
-  belongs_to :warehouse
+  belongs_to :warehouse, :required => false
 end
 
 District.fixture {{
@@ -28,5 +28,5 @@ District.fixture {{
   :tax => /\d{4}\.\d{4}/.gen,
   :ytd => /\d{12}\.\d{2}/.gen,
   :next_order_number => /\d/.gen,
-  :customers => 3000.of { Customer.make }
+  :customers => 3000.of { Customer.pick }
 }}

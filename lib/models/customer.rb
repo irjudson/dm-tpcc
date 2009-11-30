@@ -27,7 +27,7 @@ class Customer
   has n, :orders
   has n, :histories
   
-  belongs_to :district
+  belongs_to :district, :required => false
   
   has 1, :warehouse, :through => :district
 end
@@ -51,6 +51,6 @@ Customer.fixture {{
   :payment_count => /\d{4}/.gen,
   :delivery_count => /\d{4}/.gen,
   :data => /[:sentence:]/.gen[1..500],
-  :orders => 1.of { Order.make },
+  :orders => 1.of { Order.pick },
   :histories => 1.of { History.pick }
 }}
