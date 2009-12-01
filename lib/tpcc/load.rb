@@ -26,7 +26,7 @@ module DataMapper
         make_thing(scale[:order], Order)
         make_thing(scale[:customer], Customer)
         make_thing(scale[:stock], Stock)
-        make_think(scale[:district], District)
+        make_thing(scale[:district], District)
         make_thing(scale[:warehouse], Warehouse)
         make_thing(scale[:item], Item)
 
@@ -49,13 +49,13 @@ module DataMapper
       attr_accessor :object_threshold
     end
     
-     self.record_map = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = 0}}
+     self.record_map = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = []}}
      self.object_count = 0
      self.object_threshold = 25000
      
      def self.record(klass, name, instance)
        # self.record_map[klass][name.to_sym] << instance
-       self.record_map[klass][name.to_sym] += 1
+       self.record_map[klass][name.to_sym].push instance.id
 
        self.object_count += 1
        if self.object_count > self.object_threshold
@@ -68,8 +68,10 @@ module DataMapper
 
      def self.pick(klass, name)
        # self.record_map[klass][name.to_sym].pick || raise(NoFixtureExist, "no #{name} context fixtures have been generated for the #{klass} class")
-       offset = (rand * self.record_map[klass][name.to_sym]).to_i + 1
-       klass.first(:offset => offset) || raise(NoFixtureExist, "no #{name} context fixtures have been generated for the #{klass} class")
+       # offset = (rand * self.record_map[klass][name.to_sym]).to_i + 1
+       # 
+       id = self.record_map[klass][name.to_sym].pop
+       klass.get(id) || raise(NoFixtureExist, "no #{name} context fixtures have been generated for the #{klass} class")
      end
 
    end
