@@ -5,41 +5,83 @@ module DataMapper
     # This requires a set of data that is scaled by the number of warehouses in the database.
     # The scaling factors are taken from the specification of TPC-C, section 1.2.1.
     #
+    @@order_ids = []
     def self.load(num_warehouses = 1)
-
-      scale = {
-        :warehouse => num_warehouses,
-        :district => num_warehouses * 10,
-        :customer => num_warehouses * 30000,
-        :order => num_warehouses * 30000,
-        :history => num_warehouses * 30000,
-        :new_order => num_warehouses * 9000,
-        :order_line => num_warehouses * 300000,
-        :stock => num_warehouses * 100000,
-        :item => 100000
-      }
-
-      total_time = ::Benchmark.realtime {
-        make_thing(scale[:history], History)
-        make_thing(scale[:new_order], NewOrder)
-        make_thing(scale[:order_line], OrderLine)
-        make_thing(scale[:order], Order)
-        make_thing(scale[:customer], Customer)
-        make_thing(scale[:stock], Stock)
-        make_thing(scale[:district], District)
-        make_thing(scale[:warehouse], Warehouse)
-        make_thing(scale[:item], Item)
-
-      }
-      
+      transaction = DataMapper::Transaction.new(repository(:default))
+      total_time = ::Benchmark.realtime do
+        num_warehouses.times do
+          warehouse_id =  Warehouse.gen.id 
+          
+          10.times do
+            district_id = District.gen(:warehouse_id => warehouse_id).id
+            self.gen_customers(district_id, warehouse_id)
+          end
+          
+          self.gen_stock(warehouse_id)
+        end
+      end
       puts "Created Initial Dataset in #{total_time} seconds."
     end
     
-    def self.make_thing(number, klass)
+    def self.gen_customers(district_id, warehouse_id)
       transaction = DataMapper::Transaction.new(repository(:default))
-      duration = ::Benchmark.realtime { transaction.commit { number.times { klass.gen } } }
-      puts "Created #{number} #{klass.name} instances in #{"%.3f" % duration} seconds."
+      duration = ::Benchmark.realtime do
+        transaction.commit do
+          3000.times do
+            customer_id = Customer.gen(:district_id => district_id).id
+            self.gen_history(customer_id, district_id, warehouse_id)
+            self.gen_order(customer_id, district_id, warehouse_id)
+          end
+        end
+      end
+      puts "Created 3000 Customers in #{"%.3f" % duration} seconds."
     end
+    
+    def self.gen_history(customer_id, district_id, warehouse_id)
+      1.times do
+        history_id = History.gen(:customer_id => customer_id)
+      end
+    end
+    
+    def self.gen_order(customer_id, district_id, warehouse_id)
+      1.times do
+        order_id = Order.gen(:customer_id => customer_id).id
+        @@order_ids << order_id
+        NewOrder.gen(:order_id => order_id) if((rand() * 2).to_i == 1)
+      end
+    end
+    
+    def self.gen_stock(warehouse_id)
+      (100000/2500).times do
+        transaction = DataMapper::Transaction.new(repository(:default))
+        duration = ::Benchmark.realtime do
+          transaction.commit do
+            2500.times do
+              item_id = Item.gen.id
+              stock_id = Stock.gen(:warehouse_id => warehouse_id, :item_id => item_id).id
+              self.gen_order_line(stock_id)
+            end
+          end
+        end
+        puts "Created 2500 Stocks in #{"%.3f" % duration} seconds."
+      end
+    end
+    
+    def self.gen_order_line(stock_id)
+      3.times do
+        next_order_id = self.next_order_id
+        OrderLine.gen(:stock_id => stock_id, :order_id => next_order_id)
+      end
+    end
+    
+    def self.next_order_id
+      @@current_count ||= 0
+      @@current_id = @@order_ids.pop if( (@@current_count % 10) == 0 )
+      @@current_count += 1
+      return @@current_id
+    end
+    
+
   end
 
   # DM-Sweatshop is evil and tries to keep a reference to every object allocated.
