@@ -25,8 +25,7 @@ District.fixture {{
   :city => /\w{20}/.gen,
   :state => /\w{2}/.gen,
   :zip => /\w{9}/.gen,
-  :tax => /\d{4}\.\d{4}/.gen,
-  :ytd => /\d{12}\.\d{2}/.gen,
+  :tax => (/\d{4}\.\d{4}/.gen).to_f,
+  :ytd => (/\d{12}\.\d{2}/.gen).to_f,
   :next_order_number => /\d/.gen,
-  :customers => 3000.of { Customer.pick }
 }}
