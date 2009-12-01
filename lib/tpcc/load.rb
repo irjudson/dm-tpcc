@@ -29,6 +29,7 @@ module DataMapper
         make_think(scale[:district], District)
         make_thing(scale[:warehouse], Warehouse)
         make_thing(scale[:item], Item)
+
       }
       
       puts "Created Initial Dataset in #{total_time} seconds."
