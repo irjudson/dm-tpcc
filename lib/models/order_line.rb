@@ -23,6 +23,6 @@ OrderLine.fixture {{
   :supply_warehouse_id => /\d{4}/.gen,
   :delivery_date => DateTime.now,
   :quantity => /\d{2}/.gen,
-  :amount => /\d{6}\.\d{2}/.gen,
+  :amount => (/\d{6}\.\d{2}/.gen).to_f,
   :district_information => /[:sentence:]/.gen[1..24],
 }}
