@@ -20,7 +20,7 @@ class Stock
   
   has n, :order_lines
   
-  belongs_to :warehouse
+  belongs_to :warehouse, :required => false
   belongs_to :item, :required => false
 end
 
