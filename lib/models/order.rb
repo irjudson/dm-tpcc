@@ -20,8 +20,5 @@ Order.fixture {{
   :carrier => /\d/.gen,
   :line_count => /\d{2}/.gen,
   :all_local => /\d{1}/.gen,
-  :created => DateTime.now,
-  # This should be randomly 0 or 1, not always 1
-  :new_orders => 1.of { NewOrder.pick },
-  :order_lines => (rand(10)+5).of { OrderLine.pick }
+  :created => DateTime.now
 }}

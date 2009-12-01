@@ -13,7 +13,7 @@ end
 Item.fixture {{
   :image_id => /\d/.gen,
   :name => /\w+/.gen,
-  :price => /\d{5}\.\d{2}/.gen,
-  :data => /[:sentence:]/.gen[1..50],
-  :stocks => 1.of { Stock.pick }
+  :price => (/\d{5}\.\d{2}/.gen).to_f,
+  :data => /[:sentence:]/.gen[1..50]
+  # :stocks => 1.of { Stock.pick }
 }}
