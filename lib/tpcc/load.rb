@@ -1,4 +1,3 @@
-require 'ruby-debug'
 module DataMapper
   module TPCC
     #
@@ -27,11 +26,37 @@ module DataMapper
     # which can be a lengthy process.
     #
     def self.save
-      DataMapper::Model.descendants.to_ary.each do |model|
-        table_name = model.storage_name
-        puts "Saving #{table_name} to #{$datadir}/#{table_name}.yml."
-        File.open("#{$datadir}/#{table_name}.yml", 'w+') { |f| YAML.dump(model.all.collect(&:attributes), f) }
+      adapter = DataMapper.repository(:default).adapter
+      sql = "SELECT * FROM %s ORDER BY id OFFSET %s LIMIT %s"
+      total_time = ::Benchmark.realtime do
+        DataMapper::Model.descendants.to_ary.each do |model|
+          i = "000"
+          table_name = model.storage_name
+          duration = ::Benchmark.realtime do
+            puts "Saving #{table_name} to #{$datadir}/#{table_name}.yml."
+            total = model.count
+            current_offset = 0
+            limit = 3000
+            File.open("#{$datadir}/#{table_name}.yml", 'w+') do |f|
+              f.write("---\n") # Write the initial ---
+          
+              while(current_offset < total)
+                data = adapter.select(sql % [table_name, current_offset, limit])
+              
+                yaml_string = data.inject({}) { |hash, record| 
+                    hash["#{table_name}_#{i.succ!}"] = record
+                    hash
+                  }.to_yaml
+
+                  f.write(yaml_string[5..-1]) # remove the --- from the YAMLized hash.
+                  current_offset += limit
+              end
+            end
+          end
+          puts "Saved #{table_name} in #{"%.3f" % duration} seconds."
+        end
       end
+      puts "Saved Dataset in #{total_time} seconds"
       true
     end
     #
