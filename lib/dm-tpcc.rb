@@ -7,6 +7,7 @@ require 'dm-validations'
 
 modeldir = Pathname(__FILE__).dirname.expand_path / 'models'
 tpccdir = Pathname(__FILE__).dirname.expand_path / 'tpcc'
+$datadir = Pathname(__FILE__).dirname.expand_path / '..' / 'data'
 
 require modeldir / 'customer'
 require modeldir / 'district'
