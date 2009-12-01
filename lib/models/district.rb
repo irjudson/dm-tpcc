@@ -10,7 +10,7 @@ class District
   property :zip, String, :length => 9
   property :tax, Float
   property :ytd, Float
-  property :next_order_number, Integer
+#  property :next_order_number, Integer
   property :warehouse_id, Integer, :key => true
 
   has n, :customers
@@ -27,6 +27,6 @@ District.fixture {{
   :zip => /\w{9}/.gen,
   :tax => /\d{4}\.\d{4}/.gen,
   :ytd => /\d{12}\.\d{2}/.gen,
-  :next_order_number => /\d/.gen,
+#  :next_order_number => /\d/.gen,
   :customers => 3000.of { Customer.pick }
 }}
