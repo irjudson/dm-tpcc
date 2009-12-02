@@ -185,6 +185,7 @@ module DataMapper
     def self.random_carrier_id
       id = random(11)
       id > 10 ? nil : id
+    end
   end
 
   # DM-Sweatshop is evil and tries to keep a reference to every object allocated.
@@ -216,4 +217,3 @@ module DataMapper
     end
    end
 end
-
