@@ -1,4 +1,3 @@
-require 'ruby-debug'
 module DataMapper
   module TPCC
     #
@@ -8,16 +7,28 @@ module DataMapper
     #
     def self.load
       adapter = DataMapper.repository(:default).adapter
-      
-      DataMapper::Model.descendants.to_ary.each do |model|
-        table_name = model.storage_name
-        model.transaction do |txn|
-          puts "Loading #{table_name} data from #{$datadir}/#{table_name}.yml."
-          YAML.load_file("#{$datadir}/#{table_name}.yml").each do |fixture|
-            adapter.execute("INSERT INTO #{table_name} (#{fixture.keys.join(",")}) VALUES (#{fixture.values.collect {|value| adapter.send(:quote_column_value, value)}.join(",")})")
+      total_time = ::Benchmark.realtime do
+        DataMapper::Model.descendants.to_ary.each do |model|
+          table_name = model.storage_name
+          duration = ::Benchmark.realtime do
+            model.transaction do |txn|
+              puts "Loading #{table_name} data from #{$datadir}/#{table_name}.yml."
+              File.open("#{$datadir}/#{table_name}.yml") do |fixture|
+                YAML.each_document(fixture) do |ydoc|
+                  ydoc.each do |row|
+                    cur_hash = row[1]
+                    # I hope this is returning the values in the same order it's returning the keys
+                    sql =  "INSERT INTO #{table_name} (#{cur_hash.keys.join(",")}) VALUES (#{cur_hash.values.collect {|value| value.to_s.empty? ? "null" : "'#{value}'" }.join(",")})"
+                    adapter.execute(sql)
+                  end
+                end
+              end
+            end
           end
+          puts "Loaded #{table_name} in #{"%.3f" % duration} seconds."
         end
       end
+      puts "Loaded Dataset in #{total_time} seconds"
       true
     end
     
@@ -27,11 +38,39 @@ module DataMapper
     # which can be a lengthy process.
     #
     def self.save
-      DataMapper::Model.descendants.to_ary.each do |model|
-        table_name = model.storage_name
-        puts "Saving #{table_name} to #{$datadir}/#{table_name}.yml."
-        File.open("#{$datadir}/#{table_name}.yml", 'w+') { |f| YAML.dump(model.all.collect(&:attributes), f) }
+      adapter = DataMapper.repository(:default).adapter
+      sql = "SELECT * FROM %s ORDER BY id OFFSET %s LIMIT %s"
+      total_time = ::Benchmark.realtime do
+        DataMapper::Model.descendants.to_ary.each do |model|
+          i = "000"
+          table_name = model.storage_name
+          duration = ::Benchmark.realtime do
+            puts "Saving #{table_name} to #{$datadir}/#{table_name}.yml."
+            total = model.count
+            current_offset = 0
+            limit = 3000
+            File.open("#{$datadir}/#{table_name}.yml", 'w+') do |f|
+              # f.write("---\n") # Write the initial ---
+          
+              while(current_offset < total)
+                data = adapter.select(sql % [table_name, current_offset, limit])
+                
+                yaml_string = data.inject({}) { |hash, record|
+                    tmp_hash = {}
+                    record.each_pair{|key,value| tmp_hash[key] = value}
+                    hash["#{table_name}_#{i.succ!}"] = tmp_hash
+                    hash
+                  }.to_yaml
+
+                  f.write(yaml_string) # remove the --- from the YAMLized hash.
+                  current_offset += limit
+              end
+            end
+          end
+          puts "Saved #{table_name} in #{"%.3f" % duration} seconds."
+        end
       end
+      puts "Saved Dataset in #{total_time} seconds"
       true
     end
     #

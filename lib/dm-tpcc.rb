@@ -2,6 +2,8 @@ require 'rubygems'
 require 'pathname'
 require 'benchmark'
 require 'dm-core'
+require 'dm-aggregates'
+require 'dm-serializer'
 require 'dm-sweatshop'
 require 'dm-validations'
 
