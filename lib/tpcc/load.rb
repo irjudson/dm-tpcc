@@ -183,7 +183,7 @@ module DataMapper
     end
     
     def self.random_carrier_id
-      id = random(11)
+      id = random(0,11)
       id > 10 ? nil : id
     end
   end
