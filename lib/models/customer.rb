@@ -30,7 +30,7 @@ class Customer
 end
 
 Customer.fixture {{
-  :first => Randgen.first_name(:length => 16),
+  :first => Randgen.first_name,
   :middle => /\w{2}/.gen,
   :last => DataMapper::TPCC::random_last_name,
   :street1 => /\w{10,20}/.gen,
