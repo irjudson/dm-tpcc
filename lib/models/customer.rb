@@ -41,11 +41,11 @@ Customer.fixture {{
   :phone => /\w{16}/.gen,
   :since => DateTime.now,
   :credit => /GC|BC/.gen,
-  :credit_limit => (/\d{0,10}\.\d{2}/.gen).to_f,
+  :credit_limit => (/\d{1,10}\.\d{2}/.gen).to_f,
   :discount => (/0\.\d{4}/.gen).to_f,
-  :balance => (/\d{0,10}\.\d{2}/.gen).to_f,
-  :ytd_payments => (/\d{0,10}\.\d{2}/.gen).to_f,
-  :payment_count => /\d{0,4}/.gen,
-  :delivery_count => /\d{0,4}/.gen,
+  :balance => (/\d{1,10}\.\d{2}/.gen).to_f,
+  :ytd_payments => (/\d{1,10}\.\d{2}/.gen).to_f,
+  :payment_count => /\d{1,4}/.gen,
+  :delivery_count => /\d{1,4}/.gen,
   :data => /[:sentence:]/.gen[1..500]
 }}
