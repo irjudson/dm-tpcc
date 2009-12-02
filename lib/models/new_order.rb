@@ -9,6 +9,4 @@ class NewOrder
   has 1, :warehouse, :through => :district
 end
 
-NewOrder.fixture {{
-  
-}}
+NewOrder.fixture {{ }}

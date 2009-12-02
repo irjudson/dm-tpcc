@@ -3,6 +3,12 @@ module DataMapper
    def self.benchmark
       puts "Benchmarks not implemented yet."
       bm = Benchmark.new
+      
+      bm.new_order
+      bm.payment
+      bm.order_status
+      bm.delivery
+      bm.stock_level
    end
    
    class Benchmark
@@ -17,48 +23,81 @@ module DataMapper
        self.transaction = DataMapper::Transaction.new(repository(:default))
      end
      
-     def self.new_order_transaction
+     def new_order
+       # Standard warehouse & district selections
        warehouse = Warehouse.first
        district = District.first(:offset => rand(warehouse.districts.count))
        customer = district.customers.first(:offset => rand(district.customers.count))
        num_items = rand(11)+5 
        
-       # warehouse.tax, district.tax, 
-       # customer.discount, customer.last_name, customer.credit
-      
+       cost = 0
        order = Order.new(:created => Time.now, :line_count => num_items, :all_local => 1, :new_orders => [NewOrder.new] )
 
-       num_items.times {
+       num_items.times { |row|
          item = Item.first(:offset => rand(Item.count))
          quantity = rand(10)+1
-         # item.price, item.name, item.desc
+
+         cost += quantity * item.price
          
+         stock = item.stocks.first(:warehouse => warehouse)
+         if stock.quantity - quantity > 10
+           stock.quantity = stock.quantity - quantity
+         else
+           stock.quantity = (stock.quantity - quantity) + 91
+         end
+         stock.ytd += quantity
+         stock.order_count += 1
+         
+         line_item = OrderLine.new(:number => row, :supply_warehouse_id => warehouse.id, :quantity => quantity)
+         order.order_lines << line_item
        }
        
-       raise NotImplementedError
+       total_cost = cost * (1 - customer.discount) * ( 1 + warehouse.tax + district.tax)
      end
      
-     def self.payment_transaction
-       raise NotImplementedError
+     def payment
+       # Standard warehouse & district selections
+       warehouse = Warehouse.first
+       district = District.first(:offset => rand(warehouse.districts.count))
+       
+       amount = (rand * 4999.00) + 1.0
+       payment_date = Time.now
+       
+       warehouse.ytd += amount
+       district.ytd += amount
      end
      
-     def order_status_transaction
-       raise NotImplementedError
+     def order_status
+       # Standard warehouse & district selections
+       warehouse = Warehouse.first
+       district = District.first(:offset => rand(warehouse.districts.count))
+       
+       # 60% by last name, 40% by customer id
+       customer = rand(10)+1 <= 6 ? Customer.first : Customer.first(:id => NURand(1023, 1, 3000))
+
+       # Get the order for the customer
+       order = Order.first(:warehouse => warehouse, :district => district, :customer => customer, :order => [ :created.desc ])
+       
+       # For each line in the order emit the necessary information
+       order.order_lines.each do |line|
+         puts "#{line.item_code} #{line.supply_warehouse_id} #{line.quantity} #{line.amount} #{line.delivery_date}"
+       end
      end
      
-     def delivery_transaction
+     def delivery
+       # Standard warehouse selections
        warehouse = Warehouse.first
        carrier = rand(10)+1
-       delivery_date = Time.now
-       
-       raise NotImplementedError
+       delivery_date = Time.now       
      end
      
-     def stock_level_transaction
+     def stock_level
+       # Standard warehouse & district selections
+       warehouse = Warehouse.first   
+       district = District.first(:offset => rand(warehouse.districts.count))
+
        below_stock_threshold = 0    
        threshold = rand(11)+10    
-       warehouse = Warehouse.first   
-       district = District.first(:offset => rand(wareshouse.districts.count))
        
        distrct.orders.all(:limit => 20, :order => [ :created.desc ]).items.each do |item|
          item_quantity = item.stocks.inject(0) { |sum, item| sum += item.quantity }

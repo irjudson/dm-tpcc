@@ -19,13 +19,12 @@ class District
 end
 
 District.fixture {{
-  :name => /\w{10}/.gen,
-  :street1 => /\w{20}/.gen,
-  :street2 => /\w{20}/.gen,
-  :city => /\w{20}/.gen,
+  :name => /\w{1,10}/.gen,
+  :street1 => /\w{10,20}/.gen,
+  :street2 => /\w{10,20}/.gen,
+  :city => /\w{10,20}/.gen,
   :state => /\w{2}/.gen,
   :zip => /\w{9}/.gen,
-  :tax => (/\d{4}\.\d{4}/.gen).to_f,
-  :ytd => (/\d{12}\.\d{2}/.gen).to_f,
-  # :next_order_number => /\d/.gen,
+  :tax => (/0\.\d{4}/.gen).to_f,
+  :ytd => (/\d{0,10}\.\d{2}/.gen).to_f
 }}
