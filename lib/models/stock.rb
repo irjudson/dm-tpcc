@@ -25,7 +25,7 @@ class Stock
 end
 
 Stock.fixture {{
-  :quantity => /\d{4}/.gen,
+  :quantity => /\d{1,4}/.gen,
   :district_01 => /\w{24}/.gen,
   :district_02 => /\w{24}/.gen,
   :district_03 => /\w{24}/.gen,
@@ -36,8 +36,8 @@ Stock.fixture {{
   :district_08 => /\w{24}/.gen,
   :district_09 => /\w{24}/.gen,
   :district_10 => /\w{24}/.gen,
-  :ytd => /\d{8}/.gen,
-  :order_count => /\d{4}/.gen,
-  :remote_count => /\d{4}/.gen,
+  :ytd => /\d{1,8}/.gen,
+  :order_count => /\d{1,4}/.gen,
+  :remote_count => /\d{1,4}/.gen,
   :data => /[:sentence:]/.gen[1..50],
 }}

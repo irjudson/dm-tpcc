@@ -17,8 +17,9 @@ class Order
 end
 
 Order.fixture {{
-  :carrier => /\d/.gen,
-  :line_count => /\d{2}/.gen,
-  :all_local => /\d{1}/.gen,
+  :carrier => DataMapper::TPCC::random_carrier_id,
+  :line_count => /\d{1,2}/.gen,
+#  :all_local => /\d{1}/.gen,
+  :all_local => 1,
   :created => DateTime.now
 }}

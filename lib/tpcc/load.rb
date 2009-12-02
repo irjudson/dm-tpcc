@@ -46,7 +46,7 @@ module DataMapper
           table_name = model.storage_name
           duration = ::Benchmark.realtime do
             puts "Saving #{table_name} to #{$datadir}/#{table_name}.yml."
-            total = model.count
+            total = model.all.count
             current_offset = 0
             limit = 3000
             File.open("#{$datadir}/#{table_name}.yml", 'w+') do |f|
@@ -154,21 +154,37 @@ module DataMapper
       return @@current_id
     end
     
-    def self.NURand(A,x,y,C=1)
-      (((rand(A) | (rand(y-x) + x)) + C) % (y - x + 1)) + x
+    def self.random(min, max)
+      rand((max+1)-min) + min
     end
     
-    def self.rand_last
-      self.NURand(255,0,999)
+    def self.NURand(a,x,y,c=1234567)
+      (((random(0,a) | random(x,y)) + c) % (y - x + 1)) + x
     end
     
-    def self.rand_id
-      self.NURand(1023, 1, 3000)
+    def self.random_alpha_string(min, max)
+      /\w{#{min},#{max}}/.gen
     end
     
-    def self.rand_order_line_item_id
-      self.NURand(8191, 1, 100000)
+    def self.random_number_string(min, max)
+      /\d{#{min},#{max}}/.gen
     end
+    
+    def self.random_last_name
+      $last_names[self.NURand(255,0,999, $c_last)]
+    end
+    
+    def self.random_customer_id
+      self.NURand(1023, 1, 3000, $c_id)
+    end
+    
+    def self.random_order_line_item_id
+      self.NURand(8191, 1, 100000, $i_id)
+    end
+    
+    def self.random_carrier_id
+      id = random(11)
+      id > 10 ? nil : id
   end
 
   # DM-Sweatshop is evil and tries to keep a reference to every object allocated.

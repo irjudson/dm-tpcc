@@ -21,9 +21,6 @@ class Customer
   property :delivery_count, Integer
   property :data, String,  :length => 500
 
-  # property :district_id, Integer, :key => true
-  # property :warehouse_id, Integer, :key => true
-  
   has n, :orders
   has n, :histories
   
@@ -33,22 +30,22 @@ class Customer
 end
 
 Customer.fixture {{
-  :first => /\w{16}/.gen,
+  :first => Randgen.first_name(:length => 16),
   :middle => /\w{2}/.gen,
-  :last => /\w{16}/.gen,
-  :street1 => /\w{20}/.gen,
-  :street2 => /\w{20}/.gen,
-  :city => /\w{20}/.gen,
+  :last => DataMapper::TPCC::random_last_name,
+  :street1 => /\w{10,20}/.gen,
+  :street2 => /\w{10,20}/.gen,
+  :city => /\w{10,20}/.gen,
   :state => /\w{2}/.gen,
   :zip => /\w{9}/.gen,
   :phone => /\w{16}/.gen,
   :since => DateTime.now,
   :credit => /GC|BC/.gen,
-  :credit_limit => (/\d{12}\.\d{2}/.gen).to_f,
-  :discount => (/\d{4}\.\d{4}/.gen).to_f,
-  :balance => (/\d{12}\.\d{2}/.gen).to_f,
-  :ytd_payments => (/\d{12}\.\d{2}/.gen).to_f,
-  :payment_count => /\d{4}/.gen,
-  :delivery_count => /\d{4}/.gen,
+  :credit_limit => (/\d{0,10}\.\d{2}/.gen).to_f,
+  :discount => (/0\.\d{4}/.gen).to_f,
+  :balance => (/\d{0,10}\.\d{2}/.gen).to_f,
+  :ytd_payments => (/\d{0,10}\.\d{2}/.gen).to_f,
+  :payment_count => /\d{0,4}/.gen,
+  :delivery_count => /\d{0,4}/.gen,
   :data => /[:sentence:]/.gen[1..500]
 }}

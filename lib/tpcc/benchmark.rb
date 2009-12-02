@@ -3,6 +3,12 @@ module DataMapper
    def self.benchmark
       puts "Benchmarks not implemented yet."
       bm = Benchmark.new
+      
+      bm.new_order
+      bm.payment
+      bm.order_status
+      bm.delivery
+      bm.stock_level
    end
    
    class Benchmark
@@ -17,7 +23,7 @@ module DataMapper
        self.transaction = DataMapper::Transaction.new(repository(:default))
      end
      
-     def self.new_order
+     def new_order
        # Standard warehouse & district selections
        warehouse = Warehouse.first
        district = District.first(:offset => rand(warehouse.districts.count))
@@ -49,23 +55,22 @@ module DataMapper
        total_cost = cost * (1 - customer.discount) * ( 1 + warehouse.tax + district.tax)
      end
      
-     def self.payment
+     def payment
        # Standard warehouse & district selections
        warehouse = Warehouse.first
-       district = District.first(:offset => rand(wareshouse.districts.count))
+       district = District.first(:offset => rand(warehouse.districts.count))
        
        amount = (rand * 4999.00) + 1.0
        payment_date = Time.now
        
        warehouse.ytd += amount
        district.ytd += amount
-       
      end
      
      def order_status
        # Standard warehouse & district selections
        warehouse = Warehouse.first
-       district = District.first(:offset => rand(wareshouse.districts.count))
+       district = District.first(:offset => rand(warehouse.districts.count))
        
        # 60% by last name, 40% by customer id
        customer = rand(10)+1 <= 6 ? Customer.first : Customer.first(:id => NURand(1023, 1, 3000))
@@ -89,7 +94,7 @@ module DataMapper
      def stock_level
        # Standard warehouse & district selections
        warehouse = Warehouse.first   
-       district = District.first(:offset => rand(wareshouse.districts.count))
+       district = District.first(:offset => rand(warehouse.districts.count))
 
        below_stock_threshold = 0    
        threshold = rand(11)+10    
