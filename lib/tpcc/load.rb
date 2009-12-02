@@ -12,8 +12,8 @@ module DataMapper
           table_name = model.storage_name
           duration = ::Benchmark.realtime do
             File.open("#{$datadir}/#{table_name}.yml") do |fixture|
-              model.transaction do |txn|
-                YAML.each_document(fixture) do |ydoc|
+              YAML.each_document(fixture) do |ydoc|
+                model.transaction do |txn|
                   ydoc.each do |row|
                     model.create(row[1])
                   end
