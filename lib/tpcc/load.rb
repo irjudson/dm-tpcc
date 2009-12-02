@@ -115,7 +115,21 @@ module DataMapper
       return @@current_id
     end
     
-
+    def self.NURand(A,x,y,C=1)
+      (((rand(A) | (rand(y-x) + x)) + C) % (y - x + 1)) + x
+    end
+    
+    def self.rand_last
+      self.NURand(255,0,999)
+    end
+    
+    def self.rand_id
+      self.NURand(1023, 1, 3000)
+    end
+    
+    def self.rand_order_line_item_id
+      self.NURand(8191, 1, 100000)
+    end
   end
 
   # DM-Sweatshop is evil and tries to keep a reference to every object allocated.
