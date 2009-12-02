@@ -21,6 +21,7 @@ DataMapper.setup(:default, "mysql://localhost/tpcc")
 #  Pass the repository to use to setup
 #
 DataMapper::TPCC::setup :default
+DataMapper::TPCC::init
 
 #
 # This loads the initial test data into the database
