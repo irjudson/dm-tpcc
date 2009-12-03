@@ -11,8 +11,8 @@ class Item
 end
 
 Item.fixture {{
-  :image_id => DataMapper::TPCC::random(0,200000),
-  :name => /\w{6,24}/.gen,
-  :price => (/\d{1,3}\.\d{2}/.gen).to_f,
-  :data => /[:sentence:]/.gen[1..50]
+  :image_id => DataMapper::TPCC::random(1,10000),
+  :name => /\w{14,24}/.gen,
+  :price => DataMapper::TPCC::random(1.0,100.0),
+  :data => /[:sentence:]/.gen.slice(0, DataMapper::TPCC::random(12,24))
 }}

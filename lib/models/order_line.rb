@@ -19,11 +19,10 @@ end
 
 OrderLine.fixture {{
   :number => /\d{1,8}/.gen,
-  :item_code => DataMapper::TPCC::random(0,200000),
-#  :supply_warehouse_id => /\d{4}/.gen,
+  :item_code => DataMapper::TPCC::random(0,100000),
   :supply_warehouse_id => 1,
   :delivery_date => DateTime.now,
-  :quantity => /\d{1,2}/.gen,
-  :amount => (/\d{1,4}\.\d{2}/.gen).to_f,
-  :district_information => /[:sentence:]/.gen[1..24],
+  :quantity => 5,
+  :amount => 0.0,
+  :district_information => /\w{24}/.gen
 }}

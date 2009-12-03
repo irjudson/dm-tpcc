@@ -18,8 +18,7 @@ end
 
 Order.fixture {{
   :carrier => DataMapper::TPCC::random_carrier_id,
-  :line_count => /\d{1,2}/.gen,
-#  :all_local => /\d{1}/.gen,
+  :line_count => DataMapper::TPCC::random(5,15),
   :all_local => 1,
   :created => DateTime.now
 }}

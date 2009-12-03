@@ -25,7 +25,7 @@ class Stock
 end
 
 Stock.fixture {{
-  :quantity => /\d{1,4}/.gen,
+  :quantity => DataMapper::TPCC::random(10,100),
   :district_01 => /\w{24}/.gen,
   :district_02 => /\w{24}/.gen,
   :district_03 => /\w{24}/.gen,
@@ -36,8 +36,8 @@ Stock.fixture {{
   :district_08 => /\w{24}/.gen,
   :district_09 => /\w{24}/.gen,
   :district_10 => /\w{24}/.gen,
-  :ytd => /\d{1,8}/.gen,
-  :order_count => /\d{1,4}/.gen,
-  :remote_count => /\d{1,4}/.gen,
-  :data => /[:sentence:]/.gen[1..50],
+  :ytd => 0, 
+  :order_count => 0,
+  :remote_count => 0,
+  :data => /[:paragraph:]/.gen.slice(0, DataMapper::TPCC::random(26,50))
 }}

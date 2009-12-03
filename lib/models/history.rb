@@ -14,6 +14,6 @@ end
 
 History.fixture {{
   :created => DateTime.now,
-  :amount => (/\d{4}\.\d{2}/.gen).to_f,
-  :data => /[:sentence:]/.gen[1..24]
+  :amount => 10.00,
+  :data => /[:sentence:]/.gen.slice(0, DataMapper::TPCC::random(12,24))
 }}
