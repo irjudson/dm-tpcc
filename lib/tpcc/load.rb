@@ -99,7 +99,6 @@ module DataMapper
               self.gen_order(customer_id, district_id, warehouse_id)
             end
           end
-          puts "Created 3000 Customers in #{"%.3f" % duration} seconds."
         end
         puts "Created 3000 Customers in #{"%.3f" % duration} seconds."
       end
