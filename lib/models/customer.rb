@@ -19,7 +19,7 @@ class Customer
   property :ytd_payments, Float
   property :payment_count, Integer
   property :delivery_count, Integer
-  property :data, String,  :length => 500
+  property :data, String, :length => 500
 
   has n, :orders
   has n, :histories
@@ -30,22 +30,22 @@ class Customer
 end
 
 Customer.fixture {{
-  :first => Randgen.first_name,
-  :middle => /\w{2}/.gen,
+  :first => /\w{8,16}/.gen,
+  :middle => "OE",
   :last => DataMapper::TPCC::random_last_name,
   :street1 => /\w{10,20}/.gen,
   :street2 => /\w{10,20}/.gen,
   :city => /\w{10,20}/.gen,
   :state => /\w{2}/.gen,
-  :zip => /\w{9}/.gen,
-  :phone => /\w{16}/.gen,
+  :zip => /\d{4}11111/.gen,
+  :phone => /\d{16}/.gen,
   :since => DateTime.now,
   :credit => /GC|BC/.gen,
-  :credit_limit => (/\d{1,10}\.\d{2}/.gen).to_f,
-  :discount => (/0\.\d{4}/.gen).to_f,
-  :balance => (/\d{1,10}\.\d{2}/.gen).to_f,
-  :ytd_payments => (/\d{1,10}\.\d{2}/.gen).to_f,
-  :payment_count => /\d{1,4}/.gen,
-  :delivery_count => /\d{1,4}/.gen,
-  :data => /[:sentence:]/.gen[1..500]
+  :credit_limit => 50000.0,
+  :discount => DataMapper::TPCC::random(0,5000)/10000.0,
+  :balance => -10.0,
+  :ytd_payments => 10.00,
+  :payment_count => 1, 
+  :delivery_count => 0, 
+  :data => /[:sentence:]{300,500}/.gen
 }}
