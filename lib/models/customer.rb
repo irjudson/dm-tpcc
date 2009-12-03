@@ -31,7 +31,7 @@ end
 
 Customer.fixture {{
   :first => /\w{8,16}/.gen,
-  :middle => "OE",
+  :middle => OE,
   :last => DataMapper::TPCC::random_last_name,
   :street1 => /\w{10,20}/.gen,
   :street2 => /\w{10,20}/.gen,
@@ -41,11 +41,11 @@ Customer.fixture {{
   :phone => /\d{16}/.gen,
   :since => DateTime.now,
   :credit => /GC|BC/.gen,
-  :credit_limit => 50000.0,
-  :discount => DataMapper::TPCC::random(0,5000)/10000.0,
-  :balance => -10.0,
+  :credit_limit => 50000.00,
+  :discount => DataMapper::TPCC::random(0,5000)/10000.00,
+  :balance => -10.00,
   :ytd_payments => 10.00,
   :payment_count => 1, 
   :delivery_count => 0, 
-  :data => /[:sentence:]{300,500}/.gen
+  :data => DataMapper::TPCC::random(300,500).of { Randgen.alpha_numeric }.join("")
 }}
