@@ -73,11 +73,12 @@ module DataMapper
        district = District.first(:offset => rand(warehouse.districts.count))
        
        # 60% by last name, 40% by customer id
-       customer = rand(10)+1 <= 6 ? Customer.first : Customer.first(:id => NURand(1023, 1, 3000))
-
-       # Get the order for the customer
-       order = Order.first(:warehouse => warehouse, :district => district, :customer => customer, :order => [ :created.desc ])
+       #customer = rand(10)+1 <= 6 ? Customer.first : Customer.get(DataMapper::TPCC::random_customer_id)
+       customer = district.customers.first(:offset => rand(district.customers.count))
        
+       # Get the order for the customer
+       order = customer.orders.first(:order => [ :created.desc ])
+             
        # For each line in the order emit the necessary information
        order.order_lines.each do |line|
          puts "#{line.item_code} #{line.supply_warehouse_id} #{line.quantity} #{line.amount} #{line.delivery_date}"
@@ -99,9 +100,8 @@ module DataMapper
        below_stock_threshold = 0    
        threshold = rand(11)+10    
        
-       distrct.orders.all(:limit => 20, :order => [ :created.desc ]).items.each do |item|
-         item_quantity = item.stocks.inject(0) { |sum, item| sum += item.quantity }
-         if item_quantity < threshold
+       district.customers.orders.all(:limit => 20, :order => [ :created.desc ]).order_lines.each do |item|
+         if item.stock.quantity < threshold
            below_stock_threshold += 1
          end
        end
