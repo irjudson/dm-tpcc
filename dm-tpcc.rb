@@ -6,7 +6,7 @@ require 'lib/dm-tpcc'
 
 # Find an elegant way to have logging optional
 # { :off => 99999, :fatal => 7, :error => 6, :warn => 4, :info => 3, :debug => 0 }
-#$logger = DataMapper::Logger.new(STDOUT, 99999)
+#$logger = DataMapper::Logger.new(STDOUT, 0)
 
 # Find an elegant way to turn debugging verbosity on.
 
@@ -38,5 +38,5 @@ DataMapper::TPCC::init
 #
 
 bm = DataMapper::TPCC::Benchmark.new
-
-bm.test_once
+bm.run
+#bm.test_once

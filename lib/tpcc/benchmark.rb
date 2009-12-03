@@ -1,16 +1,5 @@
 module DataMapper
   module TPCC
-    def self.benchmark
-      puts "Benchmarks not implemented yet."
-      bm = Benchmark.new
-
-      bm.new_order
-      bm.payment
-      bm.order_status
-      bm.delivery
-      bm.stock_level
-    end
-
     class Benchmark
       #
       # There are five transactions that matter, this class implements them
@@ -18,9 +7,43 @@ module DataMapper
       # format it for output.
       #
       attr_accessor :transaction
+      attr_accessor :perf_hash
 
       def initialize
         self.transaction = DataMapper::Transaction.new(repository(:default))
+        self.perf_hash = Hash.new
+      end
+      
+      def run(filename="benchmark.csv", duration=30)
+        outfile = File.open(filename, "w")
+        outfile.write(["Timestamp", "transaction", "user", "system", "total", "real"].join(",")+"\n")
+        stack = make_stack
+        elapsed_time = 0
+        while elapsed_time < duration
+          stack.each do |card| 
+            ex_time = ::Benchmark.measure { Warehouse.transaction { self.send(card) } }
+            elapsed_time += ex_time.real
+            fmt = "%10.6u, %10.6y, %10.6t"
+            outfile.write("#{"%16s" % Time.now.to_f}, #{"%13s" % card.to_s}, #{ex_time.format(fmt)}, #{"%10.6f" % ex_time.real}\n")
+          end
+          stack.sort{ |a,b| rand(3)-1 }
+        end
+        outfile.close
+      end
+       
+      def make_stack
+        # 10 new_order
+        # 10 payment
+        # 1 order-status
+        # 1 delivery
+        # 1 stock-level
+        cards = Array.new
+        10.times { cards << :new_order }
+        10.times { cards << :payment }
+        cards << :order_status
+        cards << :delivery
+        cards << :stock_level
+        cards.sort{ |a,b| rand(3)-1 }
       end
 
       def test_once
@@ -33,7 +56,7 @@ module DataMapper
           x.report("Stock Level: ") { iter.times do self.stock_level ; end }
         end
       end
-        
+
       def pick_customer(warehouse, district)
         customer = nil
         while customer.nil?
@@ -48,12 +71,12 @@ module DataMapper
         end
         customer
       end
-      
+
       ##
       # Performs a New Order transaction, per page 28, of TPC-C version 5.10.1
       #
       # @api public
-      
+
       def new_order
         # Standard warehouse & district selections
         warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
@@ -92,7 +115,7 @@ module DataMapper
         district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
 
         customer = pick_customer(warehouse, district)
-        
+
         amount = DataMapper::TPCC::random(1.00,5000.00)
         payment_date = Time.now
 
