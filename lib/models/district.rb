@@ -10,7 +10,7 @@ class District
   property :zip, String, :length => 9
   property :tax, Float
   property :ytd, Float
-#  property :next_order_number, Integer
+  property :next_order_number, Integer
 #  property :warehouse_id, Integer, :key => true
 
   has n, :customers, :child_key => :district_id
@@ -19,12 +19,13 @@ class District
 end
 
 District.fixture {{
-  :name => /\w{1,10}/.gen,
+  :name => /\w{6,10}/.gen,
   :street1 => /\w{10,20}/.gen,
   :street2 => /\w{10,20}/.gen,
   :city => /\w{10,20}/.gen,
   :state => /\w{2}/.gen,
-  :zip => /\w{9}/.gen,
-  :tax => (/0\.\d{4}/.gen).to_f,
-  :ytd => (/\d{1,10}\.\d{2}/.gen).to_f
+  :zip => /\d{4}11111/.gen,
+  :tax => DataMapper::TPCC::random(0,2000)/10000.0,
+  :ytd => 30000.00,
+  :next_order_number => 30001
 }}
