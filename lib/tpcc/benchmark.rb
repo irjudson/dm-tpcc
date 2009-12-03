@@ -91,14 +91,14 @@ module DataMapper
         carrier = rand(10)+1
         delivery_date = Time.now       
 
-        warehouse.districts.each do |district|
-          new_order = district.customers.orders.new_order.first(:order => [ :id.desc ])
-          if new_order.nil?
-            continue
-          else
-            new_order.order 
-          end
-        end
+        # warehouse.districts.each do |district|
+        #   new_order = district.customers.orders.new_orders.first(:order => [ :id.desc ])
+        #   if new_order.nil?
+        #     continue
+        #   else
+        #     new_order.order 
+        #   end
+        # end
       end
 
       def stock_level
