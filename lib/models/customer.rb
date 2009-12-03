@@ -31,7 +31,7 @@ end
 
 Customer.fixture {{
   :first => /\w{8,16}/.gen,
-  :middle => OE,
+  :middle => "OE",
   :last => DataMapper::TPCC::random_last_name,
   :street1 => /\w{10,20}/.gen,
   :street2 => /\w{10,20}/.gen,
@@ -47,5 +47,5 @@ Customer.fixture {{
   :ytd_payments => 10.00,
   :payment_count => 1, 
   :delivery_count => 0, 
-  :data => DataMapper::TPCC::random(300,500).of { Randgen.alpha_numeric }.join("")
+  :data => /[:paragraph:]/.gen.slice(0, DataMapper::TPCC::random(300,500))
 }}
