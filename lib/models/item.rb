@@ -14,5 +14,5 @@ Item.fixture {{
   :image_id => DataMapper::TPCC::random(1,10000),
   :name => /\w{14,24}/.gen,
   :price => DataMapper::TPCC::random(1.0,100.0),
-  :data => /[:sentence:]/.gen.slice(0, DataMapper::TPCC::random(12,24))
+  :data => DataMapper::TPCC::random_string(26, 50, encode="ORIGINAL", percent=10)
 }}

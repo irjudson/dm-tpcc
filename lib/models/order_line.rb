@@ -23,6 +23,6 @@ OrderLine.fixture {{
   :supply_warehouse_id => 1,
   :delivery_date => DateTime.now,
   :quantity => 5,
-  :amount => 0.0,
+  :amount => DataMapper::TPCC::random(0.01, 9999.99),
   :district_information => /\w{24}/.gen
 }}

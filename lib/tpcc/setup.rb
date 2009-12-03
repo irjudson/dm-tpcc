@@ -21,6 +21,7 @@ module DataMapper
       $c_id = DataMapper::TPCC::NURand(1023, 1, 3000)
       $c_last = DataMapper::TPCC::NURand(255, 0, 999)
       $i_id = DataMapper::TPCC::NURand(8191, 1, 100000)
+      $order_num = 0
       true
     end
   end

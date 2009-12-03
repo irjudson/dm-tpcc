@@ -40,12 +40,12 @@ Customer.fixture {{
   :zip => /\w{9}/.gen,
   :phone => /\w{16}/.gen,
   :since => DateTime.now,
-  :credit => /GC|BC/.gen,
+  :credit => DataMapper::TPCC::random_credit,
   :credit_limit => 50000.00,
   :discount => DataMapper::TPCC::random(0,5000)/10000.00,
   :balance => -10.00,
   :ytd_payments => 10.00,
   :payment_count => 1, 
   :delivery_count => 0, 
-  :data => /[:paragraph:]/.gen.slice(0, DataMapper::TPCC::random(300,500))
+  :data => DataMapper::TPCC::random_string(300,500)
 }}

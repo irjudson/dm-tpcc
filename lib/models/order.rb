@@ -6,6 +6,7 @@ class Order
   property :carrier, Integer
   property :line_count, Integer
   property :all_local, Integer
+  property :district_info, String
   
   has n, :new_orders
   has n, :order_lines
@@ -20,5 +21,6 @@ Order.fixture {{
   :carrier => DataMapper::TPCC::random_carrier_id,
   :line_count => DataMapper::TPCC::random(5,15),
   :all_local => 1,
-  :created => DateTime.now
+  :created => DateTime.now,
+  :district_info => DataMapper::TPCC::random_string(24,24)
 }}

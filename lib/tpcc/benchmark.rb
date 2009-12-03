@@ -23,19 +23,50 @@ module DataMapper
         self.transaction = DataMapper::Transaction.new(repository(:default))
       end
 
+      def test_once
+        iter = 100
+        ::Benchmark.bm(15) do |x|
+          x.report("New Order: ") { iter.times do self.new_order ; end }
+          x.report("Payment: ") { iter.times do self.payment ; end }
+          x.report("Order Status: ") { iter.times do self.order_status ; end }
+          x.report("Delivery: ") { iter.times do self.delivery ; end }
+          x.report("Stock Level: ") { iter.times do self.stock_level ; end }
+        end
+      end
+        
+      def pick_customer(warehouse, district)
+        customer = nil
+        while customer.nil?
+          # 60% by last name, 40% by customer id
+          if DataMapper::TPCC::random(1,100) <= 60
+            # last name
+            customer = district.customers.first(:last => DataMapper::TPCC::random_last_name)
+          else
+            # id
+            customer = district.customers.first(:offset => DataMapper::TPCC::random(0,district.customers.count-1))
+          end
+        end
+        customer
+      end
+      
+      ##
+      # Performs a New Order transaction, per page 28, of TPC-C version 5.10.1
+      #
+      # @api public
+      
       def new_order
         # Standard warehouse & district selections
-        warehouse = Warehouse.first
-        district = District.first(:offset => rand(warehouse.districts.count))
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
+        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
         customer = district.customers.first(:offset => rand(district.customers.count))
-        num_items = rand(11)+5 
+        num_items = DataMapper::TPCC::random(5,15) 
 
         cost = 0
         order = Order.new(:created => Time.now, :line_count => num_items, :all_local => 1, :new_orders => [NewOrder.new] )
-
+        district.next_order_number += 1
         num_items.times { |row|
-          item = Item.first(:offset => rand(Item.count))
-          quantity = rand(10)+1
+          item = Item.get(DataMapper::TPCC::random_order_line_item_id)
+          quantity = DataMapper::TPCC::random(1,10)
 
           cost += quantity * item.price
 
@@ -57,54 +88,69 @@ module DataMapper
 
       def payment
         # Standard warehouse & district selections
-        warehouse = Warehouse.first
-        district = District.first(:offset => rand(warehouse.districts.count))
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
+        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
 
-        amount = (rand * 4999.00) + 1.0
+        customer = pick_customer(warehouse, district)
+        
+        amount = DataMapper::TPCC::random(1.00,5000.00)
         payment_date = Time.now
 
         warehouse.ytd += amount
         district.ytd += amount
+        customer.balance -= amount
+        customer.ytd_payments += amount
+        customer.payment_count += 1
+        if customer.credit == "BC"
+          update = "#{customer.id} - #{customer.district.id} - #{customer.warehouse.id} - #{district.id} - #{warehouse.id} - #{amount}"
+          customer.data = update + customer.data[update.length, customer.data.length - update.length]
+        end
+        customer.histories << History.new(:created => payment_date, :amount => amount, :data => "#{warehouse.name}    #{district.name}")
       end
 
       def order_status
         # Standard warehouse & district selections
-        warehouse = Warehouse.first
-        district = District.first(:offset => rand(warehouse.districts.count))
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
+        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
 
-        # 60% by last name, 40% by customer id
-        #customer = rand(10)+1 <= 6 ? Customer.first : Customer.get(DataMapper::TPCC::random_customer_id)
-        customer = district.customers.first(:offset => rand(district.customers.count))
+        customer = pick_customer(warehouse, district)
 
         # Get the order for the customer
         order = customer.orders.first(:order => [ :created.desc ])
-
         # For each line in the order emit the necessary information
         order.order_lines.each do |line|
-          puts "#{line.item_code} #{line.supply_warehouse_id} #{line.quantity} #{line.amount} #{line.delivery_date}"
+          #$logger << "#{line.item_code} #{line.supply_warehouse_id} #{line.quantity} #{line.amount} #{line.delivery_date}"
         end
       end
 
       def delivery
         # Standard warehouse selections
-        warehouse = Warehouse.first
-        carrier = rand(10)+1
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
+        carrier = DataMapper::TPCC::random(1,10)
         delivery_date = Time.now       
 
-        # warehouse.districts.each do |district|
-        #   new_order = district.customers.orders.new_orders.first(:order => [ :id.desc ])
-        #   if new_order.nil?
-        #     continue
-        #   else
-        #     new_order.order 
-        #   end
-        # end
+        warehouse.districts.each do |district|
+          new_order = NewOrder.first(:district => district, :order => [ :id.desc ])
+          unless new_order.nil? 
+            order = new_order.order 
+            new_order.destroy
+            order.carrier = carrier
+            amount = 0
+            order.order_lines.each do |order_line|
+              order_line.delivery_date = delivery_date
+              amount += order_line.amount
+            end
+            customer = order.customer
+            customer.balance += amount
+            customer.delivery_count += 1
+          end
+        end
       end
 
       def stock_level
         # Standard warehouse & district selections
-        warehouse = Warehouse.first   
-        district = District.first(:offset => rand(warehouse.districts.count))
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
+        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
 
         below_stock_threshold = 0    
         threshold = rand(11)+10    

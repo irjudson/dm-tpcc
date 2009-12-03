@@ -110,7 +110,11 @@ module DataMapper
 
     def self.gen_order(customer_id, district_id, warehouse_id)
       1.times do
-        order_id = Order.gen(:customer_id => customer_id).id
+        if @@order_ids.length <= 2100
+          order_id = Order.gen(:customer_id => customer_id).id
+        else
+          order_id = Order.gen(:customer_id => customer_id, :carrier => nil).id
+        end          
         @@order_ids << order_id
         NewOrder.gen(:order_id => order_id) if((rand() * 2).to_i == 1)
       end
@@ -135,7 +139,11 @@ module DataMapper
     def self.gen_order_line(stock_id)
       3.times do
         next_order_id = self.next_order_id
-        OrderLine.gen(:stock_id => stock_id, :order_id => next_order_id)
+        if next_order_id <= 2100
+          OrderLine.gen(:stock_id => stock_id, :order_id => next_order_id, :amount => 0.0)
+        else
+          OrderLine.gen(:stock_id => stock_id, :order_id => next_order_id)          
+        end
       end
     end
 
@@ -162,6 +170,20 @@ module DataMapper
       /\d{#{min},#{max}}/.gen
     end
 
+    def self.random_string(min, max, encode=nil, percent=10)
+      length = max
+      length = random(min, max) unless min == max
+      
+      genstr = /[:paragraph:]/.gen[0, length]
+  
+      if not encode.nil? and (random(0,100) <= percent)
+          genstr = /[:paragraph:]{10}/.gen[0, length - encode.length]
+          idx = random(0, genstr.length - encode.length)
+          genstr.insert(idx, encode)
+      end
+      genstr
+    end
+    
     def self.random_last_name
       numstr = self.NURand(255,0,999, $c_last).to_s.split("")
       (3-numstr.length).times { numstr.unshift("0") }
@@ -177,8 +199,15 @@ module DataMapper
     end
 
     def self.random_carrier_id
-      id = random(0,11)
-      id > 10 ? nil : id
+      id = random(1,10)
+    end
+    
+    def self.random_credit
+      if random(1,100) <= 10
+        "BC"
+      else
+        "GC"
+      end
     end
   end
 

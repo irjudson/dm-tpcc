@@ -6,6 +6,7 @@ require 'dm-aggregates'
 require 'dm-serializer'
 require 'dm-sweatshop'
 require 'dm-validations'
+require 'benchmark'
 
 modeldir = Pathname(__FILE__).dirname.expand_path / 'models'
 tpccdir = Pathname(__FILE__).dirname.expand_path / 'tpcc'

@@ -39,5 +39,5 @@ Stock.fixture {{
   :ytd => 0, 
   :order_count => 0,
   :remote_count => 0,
-  :data => /[:paragraph:]/.gen.slice(0, DataMapper::TPCC::random(26,50))
+  :data => DataMapper::TPCC::random_string(26,50,"ORIGINAL",10)
 }}

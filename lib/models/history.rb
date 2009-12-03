@@ -15,5 +15,5 @@ end
 History.fixture {{
   :created => DateTime.now,
   :amount => 10.00,
-  :data => /[:sentence:]/.gen.slice(0, DataMapper::TPCC::random(12,24))
+  :data => DataMapper::TPCC::random_string(12, 24)
 }}

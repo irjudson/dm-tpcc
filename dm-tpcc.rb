@@ -5,7 +5,8 @@
 require 'lib/dm-tpcc'
 
 # Find an elegant way to have logging optional
-#DataMapper::TPCC::logger = DataMapper::Logger.new(STDOUT, 0)
+# { :off => 99999, :fatal => 7, :error => 6, :warn => 4, :info => 3, :debug => 0 }
+#$logger = DataMapper::Logger.new(STDOUT, 99999)
 
 # Find an elegant way to turn debugging verbosity on.
 
@@ -20,7 +21,7 @@ DataMapper.setup(:default, "mysql://localhost/tpcc")
 # This sets up the database/repository connections and creates the database structure
 #  Pass the repository to use to setup
 #
-DataMapper::TPCC::setup :default
+#DataMapper::TPCC::setup :default
 DataMapper::TPCC::init
 
 #
@@ -28,8 +29,8 @@ DataMapper::TPCC::init
 #  Pass a scale factor which is a number of warehouses to create
 #
 
-DataMapper::TPCC::generate 1
-DataMapper::TPCC::save
+#DataMapper::TPCC::generate 1
+#DataMapper::TPCC::save
 #DataMapper::TPCC::load
 
 #
@@ -38,17 +39,4 @@ DataMapper::TPCC::save
 
 bm = DataMapper::TPCC::Benchmark.new
 
-puts "Doing a new order transaction"
-bm.new_order
-
-puts "Doing a payment transaction"
-bm.payment
-
-puts "Doing a order status transaction"
-bm.order_status
-
-puts "Doing a deliver transaction"
-bm.delivery
-
-puts "Doing a stock level transaction"
-bm.stock_level
+bm.test_once
