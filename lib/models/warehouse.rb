@@ -23,5 +23,5 @@ Warehouse.fixture {{
   :state => /\w{2}/.gen,
   :zip => /\d{9}/.gen,
   :tax => (/\.\d{4}/.gen).to_f,
-  :ytd => (/\d{0,10}\.\d{2}/.gen).to_f
+  :ytd => (/\d{1,10}\.\d{2}/.gen).to_f
 }}

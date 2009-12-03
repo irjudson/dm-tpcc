@@ -26,5 +26,5 @@ District.fixture {{
   :state => /\w{2}/.gen,
   :zip => /\w{9}/.gen,
   :tax => (/0\.\d{4}/.gen).to_f,
-  :ytd => (/\d{0,10}\.\d{2}/.gen).to_f
+  :ytd => (/\d{1,10}\.\d{2}/.gen).to_f
 }}

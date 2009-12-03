@@ -12,8 +12,8 @@ module DataMapper
           table_name = model.storage_name
           duration = ::Benchmark.realtime do
             File.open("#{$datadir}/#{table_name}.yml") do |fixture|
-              model.transaction do |txn|
-                YAML.each_document(fixture) do |ydoc|
+              YAML.each_document(fixture) do |ydoc|
+                model.transaction do |txn|
                   ydoc.each do |row|
                     model.create(row[1])
                   end
@@ -40,16 +40,13 @@ module DataMapper
         DataMapper::Model.descendants.to_ary.each do |model|
           i = "0000000"
           table_name = model.storage_name
+          total = model.count
           duration = ::Benchmark.realtime do
-            total = model.count
             current_offset = 0
             limit = 3000
             File.open("#{$datadir}/#{table_name}.yml", 'w+') do |f|
-              # f.write("---\n") # Write the initial ---
-
               while(current_offset < total)
                 data = adapter.select(sql % [table_name, limit, current_offset])
-
                 yaml_string = data.inject({}) { |hash, record|
                   tmp_hash = {}
                   record.each_pair{|key,value| tmp_hash[key] = value}
@@ -68,6 +65,7 @@ module DataMapper
         puts "Saved Dataset in #{total_time} seconds"
         true
       end
+
       #
       # This creates all the necessary data in the database tables to execute the TPC-C benchmark. 
       # This requires a set of data that is scaled by the number of warehouses in the database.
@@ -101,6 +99,7 @@ module DataMapper
               self.gen_order(customer_id, district_id, warehouse_id)
             end
           end
+          puts "Created 3000 Customers in #{"%.3f" % duration} seconds."
         end
         puts "Created 3000 Customers in #{"%.3f" % duration} seconds."
       end
@@ -130,8 +129,8 @@ module DataMapper
                 self.gen_order_line(stock_id)
               end
             end
+            puts "Created 2500 Stocks in #{"%.3f" % duration} seconds."
           end
-          puts "Created 2500 Stocks in #{"%.3f" % duration} seconds."
         end
       end
 
@@ -178,7 +177,7 @@ module DataMapper
       end
 
       def self.random_carrier_id
-        id = random(11)
+        id = random(0,11)
         id > 10 ? nil : id
       end
     end
