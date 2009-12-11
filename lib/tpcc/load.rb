@@ -1,3 +1,4 @@
+require 'ruby-debug'
 module DataMapper
   module TPCC
     #
@@ -11,12 +12,10 @@ module DataMapper
         DataMapper::Model.descendants.to_ary.each do |model|
           table_name = model.storage_name
           duration = ::Benchmark.realtime do
-            File.open("#{$datadir}/#{table_name}.yml") do |fixture|
+            File.open("#{$datadir}/#{table_name.pluralize}.yml") do |fixture|
               YAML.each_document(fixture) do |ydoc|
-                model.transaction do |txn|
-                  ydoc.each do |row|
-                    model.create(row[1])
-                  end
+                ydoc.each do |row|
+                  model.create(row[1])
                 end
               end
             end
@@ -71,17 +70,15 @@ module DataMapper
     # The scaling factors are taken from the specification of TPC-C, section 1.2.1.
     #
     @@order_ids = []
+    
     def self.generate(num_warehouses = 1)
-      transaction = DataMapper::Transaction.new(repository(:default))
       total_time = ::Benchmark.realtime do
         num_warehouses.times do
           warehouse_id =  Warehouse.gen.id 
-
           10.times do
             district_id = District.gen(:warehouse_id => warehouse_id).id
             self.gen_customers(district_id, warehouse_id)
           end
-
           self.gen_stock(warehouse_id)
         end
       end
@@ -89,14 +86,11 @@ module DataMapper
     end
 
     def self.gen_customers(district_id, warehouse_id)
-      transaction = DataMapper::Transaction.new(repository(:default))
       duration = ::Benchmark.realtime do
-        transaction.commit do
-          3000.times do
-            customer_id = Customer.gen(:district_id => district_id).id
-            self.gen_history(customer_id, district_id, warehouse_id)
-            self.gen_order(customer_id, district_id, warehouse_id)
-          end
+        3000.times do
+          customer_id = Customer.gen(:district_id => district_id).id
+          self.gen_history(customer_id, district_id, warehouse_id)
+          self.gen_order(customer_id, district_id, warehouse_id)
         end
       end
       puts "Created 3000 Customers in #{"%.3f" % duration} seconds."
@@ -104,32 +98,27 @@ module DataMapper
 
     def self.gen_history(customer_id, district_id, warehouse_id)
       1.times do
-        history_id = History.gen(:customer_id => customer_id)
+        history_id = History.gen(:district_id => district_id, :warehouse_id => warehouse_id, :customer_id => customer_id)
       end
     end
 
     def self.gen_order(customer_id, district_id, warehouse_id)
-      1.times do
-        if @@order_ids.length <= 2100
-          order_id = Order.gen(:customer_id => customer_id).id
-        else
-          order_id = Order.gen(:customer_id => customer_id, :carrier => nil).id
-        end          
-        @@order_ids << order_id
-        NewOrder.gen(:order_id => order_id) if((rand() * 2).to_i == 1)
-      end
+      if @@order_ids.length <= 2100
+        order_id = Order.gen(:district_id => district_id, :warehouse_id => warehouse_id, :customer_id => customer_id).id
+      else
+        order_id = Order.gen(:district_id => district_id, :warehouse_id => warehouse_id, :customer_id => customer_id, :carrier => nil).id
+      end          
+      @@order_ids << [order_id, district_id, warehouse_id]
+      NewOrder.gen(:warehouse_id => warehouse_id, :district_id => district_id, :order_id => order_id) if((rand() * 2).to_i == 1)
     end
 
     def self.gen_stock(warehouse_id)
       (100000/2500).times do
-        transaction = DataMapper::Transaction.new(repository(:default))
         duration = ::Benchmark.realtime do
-          transaction.commit do
-            2500.times do
-              item_id = Item.gen.id
-              stock_id = Stock.gen(:warehouse_id => warehouse_id, :item_id => item_id).id
-              self.gen_order_line(stock_id)
-            end
+          2500.times do
+            item_id = Item.gen.id
+            stock_id = Stock.gen(:warehouse_id => warehouse_id, :item_id => item_id).id
+            self.gen_order_line(stock_id)
           end
         end
         puts "Created 2500 Stocks in #{"%.3f" % duration} seconds."
@@ -138,20 +127,20 @@ module DataMapper
 
     def self.gen_order_line(stock_id)
       3.times do
-        next_order_id = self.next_order_id
+        next_order_id, district_id, warehouse_id = self.next_order_id
         if next_order_id <= 2100
-          OrderLine.gen(:stock_id => stock_id, :order_id => next_order_id, :amount => 0.0)
+          OrderLine.gen(:district_id => district_id, :warehouse_id => warehouse_id, :stock_id => stock_id, :order_id => next_order_id, :amount => 0.0)
         else
-          OrderLine.gen(:stock_id => stock_id, :order_id => next_order_id)          
+          OrderLine.gen(:district_id => district_id, :warehouse_id => warehouse_id, :stock_id => stock_id, :order_id => next_order_id)          
         end
       end
     end
 
     def self.next_order_id
       @@current_count ||= 0
-      @@current_id = @@order_ids.pop if( (@@current_count % 10) == 0 )
+      @@current_id, @@district, @@warehouse = @@order_ids.pop if( (@@current_count % 10) == 0 )
       @@current_count += 1
-      return @@current_id
+      return @@current_id, @@district, @@warehouse
     end
 
     def self.random(min, max)
@@ -203,11 +192,7 @@ module DataMapper
     end
     
     def self.random_credit
-      if random(1,100) <= 10
-        "BC"
-      else
-        "GC"
-      end
+      random(1,100) <= 10 ? "BC" : "GC"
     end
   end
 

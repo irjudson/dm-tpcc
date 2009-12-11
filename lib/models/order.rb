@@ -12,9 +12,8 @@ class Order
   has n, :order_lines
   
   belongs_to :customer, :required => false
-  
-  has 1, :district, :through => :customer
-  has 1, :warehouse, :through => :district
+  belongs_to :district, :required => false
+  belongs_to :warehouse, :required => false
 end
 
 Order.fixture {{

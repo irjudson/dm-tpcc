@@ -3,10 +3,9 @@ class NewOrder
 
   property :id, Serial
   
+  belongs_to :district, :required => false
+  belongs_to :warehouse, :required => false
   belongs_to :order, :required => false
-  
-  has 1, :district, :through => :order
-  has 1, :warehouse, :through => :district
 end
 
 NewOrder.fixture {{ }}

@@ -2,7 +2,7 @@ class OrderLine
   include DataMapper::Resource
 
   property :id, Serial
-  property :number, Integer
+  property :line_number, Integer
   property :item_code, Integer
   property :supply_warehouse_id, Integer
   property :delivery_date, DateTime
@@ -12,13 +12,12 @@ class OrderLine
   
   belongs_to :stock, :required => false
   belongs_to :order, :required => false
-  
-  has 1, :district, :through => :order
-  has 1, :warehouse, :through => :district
+  belongs_to :district, :required => false
+  belongs_to :warehouse, :required => false
 end
 
 OrderLine.fixture {{
-  :number => /\d{1,8}/.gen,
+  :line_number => /\d{1,8}/.gen,
   :item_code => DataMapper::TPCC::random(0,100000),
   :supply_warehouse_id => 1,
   :delivery_date => DateTime.now,

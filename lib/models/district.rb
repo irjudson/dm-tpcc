@@ -11,9 +11,12 @@ class District
   property :tax, Float
   property :ytd, Float
   property :next_order_number, Integer
-#  property :warehouse_id, Integer, :key => true
 
   has n, :customers, :child_key => :district_id
+  has n, :new_orders
+  has n, :histories
+  has n, :orders
+  has n, :order_lines
   
   belongs_to :warehouse, :required => false
 end

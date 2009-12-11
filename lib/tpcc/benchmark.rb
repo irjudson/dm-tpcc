@@ -14,7 +14,7 @@ module DataMapper
         self.perf_hash = Hash.new
       end
       
-      def run(filename="benchmark.csv", duration=30)
+      def run(filename="benchmark.csv", duration=10)
         outfile = File.open(filename, "w")
         outfile.write(["Timestamp", "transaction", "user", "system", "total", "real"].join(",")+"\n")
         stack = make_stack
@@ -46,15 +46,12 @@ module DataMapper
         cards.sort{ |a,b| rand(3)-1 }
       end
 
-      def test_once
-        iter = 100
-        ::Benchmark.bm(15) do |x|
-          x.report("New Order: ") { iter.times do self.new_order ; end }
-          x.report("Payment: ") { iter.times do self.payment ; end }
-          x.report("Order Status: ") { iter.times do self.order_status ; end }
-          x.report("Delivery: ") { iter.times do self.delivery ; end }
-          x.report("Stock Level: ") { iter.times do self.stock_level ; end }
-        end
+      def run_once
+          puts "New Order:" ; self.new_order
+          puts "Payment:"; self.payment
+          puts "Order Status:"; self.order_status 
+          puts "Delivery: "; self.delivery 
+          puts "Stock Level: "; self.stock_level
       end
 
       def pick_customer(warehouse, district)
@@ -79,8 +76,11 @@ module DataMapper
 
       def new_order
         # Standard warehouse & district selections
-        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
-        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
+        debugger
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count).to_i)   
+#        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
+        district = District.first(:warehouse_id => warehouse.id, :offset => rand(Districts.count)).
+#        customer = district.customers.first(:offset => rand(district.customers.count))
         customer = district.customers.first(:offset => rand(district.customers.count))
         num_items = DataMapper::TPCC::random(5,15) 
 
@@ -101,11 +101,14 @@ module DataMapper
           end
           stock.ytd += quantity
           stock.order_count += 1
+          stock.save
 
-          line_item = OrderLine.new(:number => row, :supply_warehouse_id => warehouse.id, :quantity => quantity)
+          line_item = OrderLine.new(:line_number => row, :supply_warehouse_id => warehouse.id, :quantity => quantity)
           order.order_lines << line_item
         }
-
+        
+        order.save
+        
         total_cost = cost * (1 - customer.discount) * ( 1 + warehouse.tax + district.tax)
       end
 
@@ -129,6 +132,9 @@ module DataMapper
           customer.data = update + customer.data[update.length, customer.data.length - update.length]
         end
         customer.histories << History.new(:created => payment_date, :amount => amount, :data => "#{warehouse.name}    #{district.name}")
+        customer.save
+        warehouse.save
+        district.save
       end
 
       def order_status
@@ -153,7 +159,7 @@ module DataMapper
         delivery_date = Time.now       
 
         warehouse.districts.each do |district|
-          new_order = NewOrder.first(:district => district, :order => [ :id.desc ])
+          new_order = NewOrder.first(:district => district)
           unless new_order.nil? 
             order = new_order.order 
             new_order.destroy
@@ -163,9 +169,11 @@ module DataMapper
               order_line.delivery_date = delivery_date
               amount += order_line.amount
             end
+            order.save
             customer = order.customer
             customer.balance += amount
             customer.delivery_count += 1
+            customer.save
           end
         end
       end
@@ -178,7 +186,7 @@ module DataMapper
         below_stock_threshold = 0    
         threshold = rand(11)+10    
 
-        district.customers.orders.all(:limit => 20, :order => [ :created.desc ]).order_lines.each do |item|
+        Order.all(:district => district, :limit => 20, :order => [ :created.desc ]).order_lines.each do |item|
           if item.stock.quantity < threshold
             below_stock_threshold += 1
           end

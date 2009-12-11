@@ -15,7 +15,8 @@ require 'lib/dm-tpcc'
 #
 #DataMapper.setup(:default, :adapter => :in_memory)
 #DataMapper.setup(:default, "sqlite3::memory:")
-DataMapper.setup(:default, "mysql://localhost/tpcc")
+#DataMapper.setup(:default, "mysql://localhost/tpcc")
+DataMapper.setup(:default, "persevere://localhost:8080/")
 
 #
 # This sets up the database/repository connections and creates the database structure
@@ -38,5 +39,4 @@ DataMapper::TPCC::init
 #
 
 bm = DataMapper::TPCC::Benchmark.new
-bm.run
-#bm.test_once
+bm.run_once

@@ -25,8 +25,7 @@ class Customer
   has n, :histories
   
   belongs_to :district, :required => false, :child_key => :district_id
-  
-  has 1, :warehouse, :through => :district
+  belongs_to :warehouse, :required => false
 end
 
 Customer.fixture {{

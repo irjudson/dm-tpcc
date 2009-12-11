@@ -7,9 +7,8 @@ class History
   property :data, String, :length => 24
   
   belongs_to :customer
-  
-  has 1, :district, :through => :customer
-  has 1, :warehouse, :through => :district
+  belongs_to :district
+  belongs_to :warehouse
 end
 
 History.fixture {{

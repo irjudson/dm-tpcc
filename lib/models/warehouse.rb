@@ -13,6 +13,12 @@ class Warehouse
   
   has n, :districts
   has n, :stocks
+  has n, :new_orders
+  has n, :customers
+  has n, :histories
+  has n, :orders
+  has n, :order_lines
+  
 end
 
 Warehouse.fixture {{
