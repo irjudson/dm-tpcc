@@ -1,42 +1,135 @@
 #!/usr/bin/env ruby
 #
-# This is a script to exercise your database with the TPC-C performance benchmark.
+# This is a script to exercise your database with the TPC-C
+# performance benchmark implemented using DataMapper.
 #
-require 'lib/dm-tpcc'
+require 'ostruct'
+require 'optparse'
+require 'bundler/setup'
+Bundler.require(:default)
 
-# Find an elegant way to have logging optional
-# { :off => 99999, :fatal => 7, :error => 6, :warn => 4, :info => 3, :debug => 0 }
-#$logger = DataMapper::Logger.new(STDOUT, 0)
+# Add local lib to path for development
+lib = File.expand_path('../../lib/', __FILE__)
+$:.unshift lib unless $:.include?(lib)
 
-# Find an elegant way to turn debugging verbosity on.
+# Load dm-tpcc code
+require 'dm-tpcc'
 
-#
-# Connect to a database to test
-#
-#DataMapper.setup(:default, :adapter => :in_memory)
-#DataMapper.setup(:default, "sqlite3::memory:")
-#DataMapper.setup(:default, "mysql://localhost/tpcc")
-DataMapper.setup(:default, "persevere://localhost:8080/")
+# Logging level map
+LOG_LEVELS = { 
+  :off => 99999, 
+  :fatal => 7, 
+  :error => 6, 
+  :warn => 4, 
+  :info => 3, 
+  :debug => 0 }
 
-#
-# This sets up the database/repository connections and creates the database structure
-#  Pass the repository to use to setup
-#
-#DataMapper::TPCC::setup :default
+# Parse command line options.
+def parse_options(args)
+  options = OpenStruct.new
+  options.library = []
+  options.inplace = false
+  options.encoding = "utf8"
+  options.transfer_type = :auto
+  options.verbose = false
+  options.log_level = :off
+  options.log_destination = STDOUT
+  options.db_url = { :adapter => :in_memory }
+  options.generate = nil
+
+  opts = OptionParser.new do |opts|
+    opts.banner = "Usage: dm-tpcc [options]"
+    opts.separator ""
+    opts.on("-g WAREHOUSES", "--generate WAREHOUSES", Integer,
+            "Generate new data for the specified number of warehouses.") do |g|
+      options.generate = g
+    end
+    opts.on("-d DB_URL", "--db-url DB_URL", String,
+      "Specify a DataMapper DB URL (e.g. mysql://localhost/dbname)") do |dburl|
+      options.db_url = dburl
+    end
+    opts.on("-l LOG_LEVEL", "--log-level LOG_LEVEL", LOG_LEVELS, 
+            "Specify a log level (#{LOG_LEVELS.keys.join(",")}).") do |l|
+      options.log_level = l.to_sym
+    end
+    opts.on("-L LOG_FILE", "--log-file LOG_FILE", String, 
+            "Specify a log file.") do |f|
+      options.log_destination = File.new(f, "a+")
+    end
+    opts.separator "Common Options:"
+    opts.on_tail("-h", "--help", "Show this message.") do
+      puts opts
+      exit
+    end
+    opts.on_tail("--version", "Show version") do
+      puts DataMapper::TPCC::VERSION
+      exit
+    end
+  end
+
+  opts.parse!(args)
+  options
+end
+
+# Parse command line options
+options = parse_options(ARGV)
+
+# Setup logging
+unless options.log_level == :off
+  $logger = DataMapper::Logger.new(options.log_destination, 
+                                   LOG_LEVELS[options.log_level])
+end
+
+# Connect to a database to exercise
+DataMapper.setup(:default, options.db_url)
+
+# This sets up the database/repository connections and creates the
+#  database structure. Pass the repository to use to setup.
+DataMapper::TPCC::setup :default
 DataMapper::TPCC::init
 
-#
-# This loads the initial test data into the database
-#  Pass a scale factor which is a number of warehouses to create
-#
+# This loads the initial test data into the database.
+# Pass a scale factor which is a number of warehouses to create
+# everything is scaled to the number of warehouses.
+unless options.generate.nil? 
+  DataMapper::TPCC::generate options.generate
+  DataMapper::TPCC::save
+else
+  DataMapper::TPCC::load
+end
 
-#DataMapper::TPCC::generate 1
-#DataMapper::TPCC::save
-#DataMapper::TPCC::load
-
-#
 # This measures the performance of the database
-#
-
 bm = DataMapper::TPCC::Benchmark.new
 bm.run_once
+
+
+# Old separate programs getting merged and integrated
+# -----------------------------------------------------------------------------
+def benchmark
+  iter = 1000
+  size = 500
+
+  Benchmark.bm do |x|
+    x.report("DM::TPCC: "){ iter.times do ; DataMapper::TPCC::random_string(500,500) ; end }
+    x.report("Randgen: "){ iter.times do ; /[:paragraph:]{10}/.gen[0,500]  ; end }    
+    x.report("Char Cat: "){ iter.times do ; str = ""; size.of { str << Randgen.char }; str; end }    
+    x.report("Char Join: "){ iter.times do ; size.of { Randgen.char }.join("") ; end }    
+  end
+
+end
+
+def two_hour
+  DataMapper.setup(:default, "mysql://localhost/tpcc")
+  DataMapper::TPCC::init
+  bm = DataMapper::TPCC::Benchmark.new
+  bm.run("two_hour.csv", 7200)
+end
+
+#
+# -----------------------------------------------------------------------------
+#
+# $db = "sqlite3::memory:"
+#$db = "sqlite3://#{Dir.pwd}/tpcc.db"
+# $db = "mysql://localhost/tpcc"
+# $db = "postgres://localhost/tpcc"
+# $db = "persevere://localhost:8080/"

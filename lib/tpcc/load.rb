@@ -1,10 +1,10 @@
-require 'ruby-debug'
 module DataMapper
   module TPCC
     #
-    # This method loads the contents of saved data from the files in the data directory.
-    # This is much faster than regenerating the data each time, but requires the 
-    # adapter to be able to execute SQL queries to accept the bulk insert.
+    # This method loads the contents of saved data from the files in
+    # the data directory.  This is much faster than regenerating the
+    # data each time, but requires the adapter to be able to execute
+    # SQL queries to accept the bulk insert.
     #
     def self.load
       adapter = DataMapper.repository(:default).adapter
@@ -28,9 +28,10 @@ module DataMapper
     end
 
     #
-    # This saves the contents of all the TPC-C tables into yaml files in the data directory.
-    # These files can then be loaded by subsequent tests, rather than regenerating the content
-    # which can be a lengthy process.
+    # This saves the contents of all the TPC-C tables into yaml files
+    # in the data directory.  These files can then be loaded by
+    # subsequent tests, rather than regenerating the content which can
+    # be a lengthy process.
     #
     def self.save
       adapter = DataMapper.repository(:default).adapter
@@ -43,6 +44,7 @@ module DataMapper
           duration = ::Benchmark.realtime do
             current_offset = 0
             limit = 3000
+            Dir::mkdir($datadir) unless FileText.directory?($datadir)
             File.open("#{$datadir}/#{table_name}.yml", 'w+') do |f|
               while(current_offset < total)
                 data = adapter.select(sql % [table_name, limit, current_offset])
@@ -64,11 +66,15 @@ module DataMapper
       puts "Saved Dataset in #{total_time} seconds"
       true
     end
+
     #
-    # This creates all the necessary data in the database tables to execute the TPC-C benchmark. 
-    # This requires a set of data that is scaled by the number of warehouses in the database.
-    # The scaling factors are taken from the specification of TPC-C, section 1.2.1.
+    # This creates all the necessary data in the database tables to
+    # execute the TPC-C benchmark.  This requires a set of data that
+    # is scaled by the number of warehouses in the database.  The
+    # scaling factors are taken from the specification of TPC-C,
+    # section 1.2.1.
     #
+
     @@order_ids = []
     
     def self.generate(num_warehouses = 1)
@@ -98,26 +104,40 @@ module DataMapper
 
     def self.gen_history(customer_id, district_id, warehouse_id)
       1.times do
-        history_id = History.gen(:district_id => district_id, :warehouse_id => warehouse_id, :customer_id => customer_id)
+        history_id = History.gen(:district_id => district_id, 
+                                 :warehouse_id => warehouse_id, 
+                                 :customer_id => customer_id)
       end
     end
 
     def self.gen_order(customer_id, district_id, warehouse_id)
       if @@order_ids.length <= 2100
-        order_id = Order.gen(:district_id => district_id, :warehouse_id => warehouse_id, :customer_id => customer_id).id
+        order_id = Order.gen(:district_id => district_id, 
+                             :warehouse_id => warehouse_id, 
+                             :customer_id => customer_id).id
       else
-        order_id = Order.gen(:district_id => district_id, :warehouse_id => warehouse_id, :customer_id => customer_id, :carrier => nil).id
+        order_id = Order.gen(:district_id => district_id, 
+                             :warehouse_id => warehouse_id, 
+                             :customer_id => customer_id, 
+                             :carrier => nil).id
       end          
       @@order_ids << [order_id, district_id, warehouse_id]
-      NewOrder.gen(:warehouse_id => warehouse_id, :district_id => district_id, :order_id => order_id) if((rand() * 2).to_i == 1)
+      NewOrder.gen(:warehouse_id => warehouse_id, 
+                   :district_id => district_id, 
+                   :order_id => order_id) if((rand() * 2).to_i == 1)
     end
 
     def self.gen_stock(warehouse_id)
       (100000/2500).times do
+        puts "Creating #{100000/2500} 2500 stock buckets."
         duration = ::Benchmark.realtime do
+          count = 0
           2500.times do
+            puts "Generated # #{count}"
+            count = count + 1
             item_id = Item.gen.id
-            stock_id = Stock.gen(:warehouse_id => warehouse_id, :item_id => item_id).id
+            stock_id = Stock.gen(:warehouse_id => warehouse_id, 
+                                 :item_id => item_id).id
             self.gen_order_line(stock_id)
           end
         end

@@ -1,16 +1,8 @@
-require 'rubygems'
-require 'pathname'
-require 'benchmark'
-require 'dm-core'
-require 'dm-aggregates'
-require 'dm-serializer'
-require 'dm-sweatshop'
-require 'dm-validations'
 require 'benchmark'
 
-modeldir = Pathname(__FILE__).dirname.expand_path / 'models'
-tpccdir = Pathname(__FILE__).dirname.expand_path / 'tpcc'
-$datadir = Pathname(__FILE__).dirname.expand_path / '..' / 'data'
+modeldir = File.expand_path('models', File.dirname(__FILE__))
+tpccdir  = File.expand_path('tpcc', File.dirname(__FILE__))
+$datadir = File.expand_path('../data', File.dirname(__FILE__))
 
 require modeldir / 'customer'
 require modeldir / 'district'
@@ -22,6 +14,7 @@ require modeldir / 'order_line'
 require modeldir / 'stock'
 require modeldir / 'warehouse'
 
+require tpccdir / 'version'
 require tpccdir / 'setup'
 require tpccdir / 'load'
 require tpccdir / 'benchmark'

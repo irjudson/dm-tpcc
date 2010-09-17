@@ -76,7 +76,6 @@ module DataMapper
 
       def new_order
         # Standard warehouse & district selections
-        debugger
         warehouse = Warehouse.first(:offset => rand(Warehouse.count).to_i)   
 #        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
         district = District.first(:warehouse_id => warehouse.id, :offset => rand(Districts.count)).

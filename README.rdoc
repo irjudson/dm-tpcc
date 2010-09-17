@@ -1,6 +1,8 @@
 = dm-tpcc
 
-This is a DataMapper specific implementation of the TPC-C Standard. Information on TPC-C can be found through the Transaction Processing Council (TPC) website.
+This is a DataMapper specific implementation of the TPC-C
+Standard. Information on TPC-C can be found through the {Transaction
+Processing Council (TPC) website}[http://www.tpc.org/tpcc/].
 
 = TODO
 

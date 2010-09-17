@@ -13,10 +13,15 @@ tmtags
 ## VIM
 *.swp
 
+## Bundler
+.bundle
+
 ## PROJECT::GENERAL
+*.gem
 coverage
 rdoc
 pkg
+tpcc.db
 
 ## PROJECT::SPECIFIC
 *.dump

@@ -2,11 +2,11 @@
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
 
-require 'dm-tpcc/version'
+require 'tpcc/version'
 
 Gem::Specification.new do |s|	
  s.name	   = "dm-tpcc"
- s.version = DMTPCC::VERSION
+ s.version = DataMapper::TPCC::VERSION
  s.authors = ["Ivan R. Judson"]
  s.email   = ["irjudson@gmail.com"]
  s.homepage = "http://github.com/irjudson/dm-tpcc"
