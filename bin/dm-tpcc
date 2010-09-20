@@ -16,46 +16,46 @@ $:.unshift lib unless $:.include?(lib)
 require 'dm-tpcc'
 
 # Logging level map
-LOG_LEVELS = { 
-  :off => 99999, 
-  :fatal => 7, 
-  :error => 6, 
-  :warn => 4, 
-  :info => 3, 
+LOG_LEVELS = {
+  :off => 99999,
+  :fatal => 7,
+  :error => 6,
+  :warn => 4,
+  :info => 3,
   :debug => 0 }
 
 # Parse command line options.
 def parse_options(args)
   options = OpenStruct.new
-  options.library = []
-  options.inplace = false
-  options.encoding = "utf8"
-  options.transfer_type = :auto
   options.verbose = false
   options.log_level = :off
   options.log_destination = STDOUT
   options.db_url = { :adapter => :in_memory }
   options.generate = nil
+  options.time = -1
+  options.profile_strings = false
+  options.output_filename = nil
 
   opts = OptionParser.new do |opts|
     opts.banner = "Usage: dm-tpcc [options]"
     opts.separator ""
-    opts.on("-g WAREHOUSES", "--generate WAREHOUSES", Integer,
-            "Generate new data for the specified number of warehouses.") do |g|
-      options.generate = g
-    end
+    opts.on("-g NUM_WAREHOUSES", "--generate NUM_WAREHOUSES", Integer,
+            "Generate data for the number of warehouses.") { |g| options.generate = g }
+    opts.on("-s", "--save",
+      "Save generated data for later use.") { |s| options.save_data = s }
+    opts.on("--profile-string-algorigthms",
+      "Profile different string generators") { |sg| options.profile_strings = sg }
     opts.on("-d DB_URL", "--db-url DB_URL", String,
-      "Specify a DataMapper DB URL (e.g. mysql://localhost/dbname)") do |dburl|
-      options.db_url = dburl
-    end
-    opts.on("-l LOG_LEVEL", "--log-level LOG_LEVEL", LOG_LEVELS, 
-            "Specify a log level (#{LOG_LEVELS.keys.join(",")}).") do |l|
-      options.log_level = l.to_sym
-    end
-    opts.on("-L LOG_FILE", "--log-file LOG_FILE", String, 
-            "Specify a log file.") do |f|
-      options.log_destination = File.new(f, "a+")
-    end
+        "Specify a DataMapper DB URL (e.g. mysql://localhost/dbname)") { |dburl| options.db_url = dburl }
+    opts.on("-l LOG_LEVEL", "--log-level LOG_LEVEL", LOG_LEVELS,
+            "Specify a log level (#{LOG_LEVELS.keys.join(",")}).") { |l| options.log_level = l.to_sym }
+    opts.on("-L LOG_FILE", "--log-file LOG_FILE", String,
+            "Specify a log file.") { |f| options.log_destination = File.new(f, "a+") }
+    opts.on("-o FILENAME", "--output FILENAME", String,
+      "Filename to save output to.") { |outputfile| options.output_filename = outputfile }
+    opts.on("-t DURATION", "--time DURATION", Integer,
+      "Duration of the test in seconds.") { |time| options.time = time }
+    opts.on("--once", "Run just one time") { |once| options.once = once }
     opts.separator "Common Options:"
     opts.on_tail("-h", "--help", "Show this message.") do
       puts opts
@@ -76,7 +76,7 @@ options = parse_options(ARGV)
 
 # Setup logging
 unless options.log_level == :off
-  $logger = DataMapper::Logger.new(options.log_destination, 
+  $logger = DataMapper::Logger.new(options.log_destination,
                                    LOG_LEVELS[options.log_level])
 end
 
@@ -91,29 +91,27 @@ DataMapper::TPCC::init
 # This loads the initial test data into the database.
 # Pass a scale factor which is a number of warehouses to create
 # everything is scaled to the number of warehouses.
-unless options.generate.nil? 
+unless options.generate.nil?
   DataMapper::TPCC::generate options.generate
-  DataMapper::TPCC::save
+  DataMapper::TPCC::save if options.save_data
 else
   DataMapper::TPCC::load
+end
+
+if options.profile_strings
+  compare_random_string_algorithms
 end
 
 # This measures the performance of the database
 bm = DataMapper::TPCC::Benchmark.new
 bm.run_once
 
-
-# Old separate programs getting merged and integrated
-# -----------------------------------------------------------------------------
-def benchmark
-  iter = 1000
-  size = 500
-
+def compare_random_string_algorithms(iterations = 1000, size = 500)
   Benchmark.bm do |x|
-    x.report("DM::TPCC: "){ iter.times do ; DataMapper::TPCC::random_string(500,500) ; end }
-    x.report("Randgen: "){ iter.times do ; /[:paragraph:]{10}/.gen[0,500]  ; end }    
-    x.report("Char Cat: "){ iter.times do ; str = ""; size.of { str << Randgen.char }; str; end }    
-    x.report("Char Join: "){ iter.times do ; size.of { Randgen.char }.join("") ; end }    
+    x.report("DM::TPCC:  "){ iterations.times do ; DataMapper::TPCC::random_string(500,500)       ; end }
+    x.report("Randgen:   "){ iterations.times do ; /[:paragraph:]{10}/.gen[0,500]                 ; end }
+    x.report("Char Cat:  "){ iterations.times do ; str = ""; size.of { str << Randgen.char }; str ; end }
+    x.report("Char Join: "){ iterations.times do ; size.of { Randgen.char }.join("")              ; end }
   end
 
 end
@@ -129,7 +127,7 @@ end
 # -----------------------------------------------------------------------------
 #
 # $db = "sqlite3::memory:"
-#$db = "sqlite3://#{Dir.pwd}/tpcc.db"
+# $db = "sqlite3://#{Dir.pwd}/tpcc.db"
 # $db = "mysql://localhost/tpcc"
 # $db = "postgres://localhost/tpcc"
 # $db = "persevere://localhost:8080/"

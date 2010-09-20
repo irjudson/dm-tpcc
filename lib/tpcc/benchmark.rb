@@ -47,11 +47,13 @@ module DataMapper
       end
 
       def run_once
-          puts "New Order:" ; self.new_order
-          puts "Payment:"; self.payment
-          puts "Order Status:"; self.order_status 
-          puts "Delivery: "; self.delivery 
-          puts "Stock Level: "; self.stock_level
+      	  ::Benchmark.bm do |x|
+	    x.report("New Order   : ") { new_order    }
+            x.report("Payment     : ") { payment      }
+            x.report("Order Status: ") { order_status } 
+            x.report("Delivery    : ") { delivery     }
+            x.report("Stock Level : ") { stock_level  }
+	  end	    
       end
 
       def pick_customer(warehouse, district)
@@ -77,10 +79,10 @@ module DataMapper
       def new_order
         # Standard warehouse & district selections
         warehouse = Warehouse.first(:offset => rand(Warehouse.count).to_i)   
-#        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
-        district = District.first(:warehouse_id => warehouse.id, :offset => rand(Districts.count)).
-#        customer = district.customers.first(:offset => rand(district.customers.count))
+        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
+#        district = District.first(:warehouse_id => warehouse.id, :offset => rand(District.count)).
         customer = district.customers.first(:offset => rand(district.customers.count))
+#        customer = district.customers.first(:offset => rand(district.customers.count))
         num_items = DataMapper::TPCC::random(5,15) 
 
         cost = 0

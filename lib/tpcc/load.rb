@@ -9,10 +9,10 @@ module DataMapper
     def self.load
       adapter = DataMapper.repository(:default).adapter
       total_time = ::Benchmark.realtime do
-        DataMapper::Model.descendants.to_ary.each do |model|
+        DataMapper::Model.descendants.each do |model|
           table_name = model.storage_name
           duration = ::Benchmark.realtime do
-            File.open("#{$datadir}/#{table_name.pluralize}.yml") do |fixture|
+            File.open("#{$datadir}/#{table_name}.yml") do |fixture|
               YAML.each_document(fixture) do |ydoc|
                 ydoc.each do |row|
                   model.create(row[1])
@@ -37,14 +37,14 @@ module DataMapper
       adapter = DataMapper.repository(:default).adapter
       sql = "SELECT * FROM %s ORDER BY id LIMIT %s OFFSET %s"
       total_time = ::Benchmark.realtime do
-        DataMapper::Model.descendants.to_ary.each do |model|
+        DataMapper::Model.descendants.each do |model|
           i = "0000000"
           table_name = model.storage_name
           total = model.count
           duration = ::Benchmark.realtime do
             current_offset = 0
             limit = 3000
-            Dir::mkdir($datadir) unless FileText.directory?($datadir)
+            Dir::mkdir($datadir) unless File.directory?($datadir)
             File.open("#{$datadir}/#{table_name}.yml", 'w+') do |f|
               while(current_offset < total)
                 data = adapter.select(sql % [table_name, limit, current_offset])
@@ -76,11 +76,11 @@ module DataMapper
     #
 
     @@order_ids = []
-    
+
     def self.generate(num_warehouses = 1)
       total_time = ::Benchmark.realtime do
         num_warehouses.times do
-          warehouse_id =  Warehouse.gen.id 
+          warehouse_id =  Warehouse.gen.id
           10.times do
             district_id = District.gen(:warehouse_id => warehouse_id).id
             self.gen_customers(district_id, warehouse_id)
@@ -104,39 +104,35 @@ module DataMapper
 
     def self.gen_history(customer_id, district_id, warehouse_id)
       1.times do
-        history_id = History.gen(:district_id => district_id, 
-                                 :warehouse_id => warehouse_id, 
+        history_id = History.gen(:district_id => district_id,
+                                 :warehouse_id => warehouse_id,
                                  :customer_id => customer_id)
       end
     end
 
     def self.gen_order(customer_id, district_id, warehouse_id)
       if @@order_ids.length <= 2100
-        order_id = Order.gen(:district_id => district_id, 
-                             :warehouse_id => warehouse_id, 
+        order_id = Order.gen(:district_id => district_id,
+                             :warehouse_id => warehouse_id,
                              :customer_id => customer_id).id
       else
-        order_id = Order.gen(:district_id => district_id, 
-                             :warehouse_id => warehouse_id, 
-                             :customer_id => customer_id, 
+        order_id = Order.gen(:district_id => district_id,
+                             :warehouse_id => warehouse_id,
+                             :customer_id => customer_id,
                              :carrier => nil).id
-      end          
+      end
       @@order_ids << [order_id, district_id, warehouse_id]
-      NewOrder.gen(:warehouse_id => warehouse_id, 
-                   :district_id => district_id, 
+      NewOrder.gen(:warehouse_id => warehouse_id,
+                   :district_id => district_id,
                    :order_id => order_id) if((rand() * 2).to_i == 1)
     end
 
     def self.gen_stock(warehouse_id)
       (100000/2500).times do
-        puts "Creating #{100000/2500} 2500 stock buckets."
         duration = ::Benchmark.realtime do
-          count = 0
           2500.times do
-            puts "Generated # #{count}"
-            count = count + 1
             item_id = Item.gen.id
-            stock_id = Stock.gen(:warehouse_id => warehouse_id, 
+            stock_id = Stock.gen(:warehouse_id => warehouse_id,
                                  :item_id => item_id).id
             self.gen_order_line(stock_id)
           end
@@ -151,7 +147,7 @@ module DataMapper
         if next_order_id <= 2100
           OrderLine.gen(:district_id => district_id, :warehouse_id => warehouse_id, :stock_id => stock_id, :order_id => next_order_id, :amount => 0.0)
         else
-          OrderLine.gen(:district_id => district_id, :warehouse_id => warehouse_id, :stock_id => stock_id, :order_id => next_order_id)          
+          OrderLine.gen(:district_id => district_id, :warehouse_id => warehouse_id, :stock_id => stock_id, :order_id => next_order_id)
         end
       end
     end
@@ -182,9 +178,9 @@ module DataMapper
     def self.random_string(min, max, encode=nil, percent=10)
       length = max
       length = random(min, max) unless min == max
-      
+
       genstr = /[:paragraph:]/.gen[0, length]
-  
+
       if not encode.nil? and (random(0,100) <= percent)
           genstr = /[:paragraph:]{10}/.gen[0, length - encode.length]
           idx = random(0, genstr.length - encode.length)
@@ -192,7 +188,7 @@ module DataMapper
       end
       genstr
     end
-    
+
     def self.random_last_name
       numstr = self.NURand(255,0,999, $c_last).to_s.split("")
       (3-numstr.length).times { numstr.unshift("0") }
@@ -210,7 +206,7 @@ module DataMapper
     def self.random_carrier_id
       id = random(1,10)
     end
-    
+
     def self.random_credit
       random(1,100) <= 10 ? "BC" : "GC"
     end
