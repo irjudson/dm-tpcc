@@ -8,6 +8,8 @@ GEM
       ZenTest (~> 4.3)
     ZenTest (4.4.0)
     addressable (2.2.1)
+    archive-tar-minitar (0.5.2)
+    columnize (0.3.1)
     data_objects (0.10.2)
       addressable (~> 2.1)
     dm-aggregates (1.0.2)
@@ -64,8 +66,20 @@ GEM
     extlib (0.9.15)
     fastercsv (1.5.3)
     json_pure (1.4.6)
+    linecache19 (0.5.11)
+      ruby_core_source (>= 0.1.4)
     randexp (0.1.5)
       ParseTree
+    ruby-debug-base19 (0.11.24)
+      columnize (>= 0.3.1)
+      linecache19 (>= 0.5.11)
+      ruby_core_source (>= 0.1.4)
+    ruby-debug19 (0.11.6)
+      columnize (>= 0.3.1)
+      linecache19 (>= 0.5.11)
+      ruby-debug-base19 (>= 0.11.19)
+    ruby_core_source (0.1.4)
+      archive-tar-minitar (>= 0.5.2)
     sexp_processor (3.0.5)
     stringex (1.1.0)
     uuidtools (2.1.1)
@@ -85,3 +99,4 @@ DEPENDENCIES
   dm-sweatshop
   dm-transactions
   dm-validations
+  ruby-debug19

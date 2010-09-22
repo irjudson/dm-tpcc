@@ -1,8 +1,8 @@
 require 'benchmark'
+require 'pathname'
 
 modeldir = File.expand_path('models', File.dirname(__FILE__))
 tpccdir  = File.expand_path('tpcc', File.dirname(__FILE__))
-$datadir = File.expand_path('../data', File.dirname(__FILE__))
 
 require modeldir / 'customer'
 require modeldir / 'district'

@@ -12,7 +12,7 @@ module DataMapper
         DataMapper::Model.descendants.each do |model|
           table_name = model.storage_name
           duration = ::Benchmark.realtime do
-            File.open("#{$datadir}/#{table_name}.yml") do |fixture|
+            File.open("#{$data_directory}/#{table_name}.yml") do |fixture|
               YAML.each_document(fixture) do |ydoc|
                 ydoc.each do |row|
                   model.create(row[1])
@@ -44,7 +44,6 @@ module DataMapper
           duration = ::Benchmark.realtime do
             current_offset = 0
             limit = 3000
-            Dir::mkdir($datadir) unless File.directory?($datadir)
             File.open("#{$datadir}/#{table_name}.yml", 'w+') do |f|
               while(current_offset < total)
                 data = adapter.select(sql % [table_name, limit, current_offset])

@@ -1,5 +1,7 @@
 source "http://rubygems.org"
 
+gem "ruby-debug19"
+
 # Core DataMapper gems
 gem "dm-core"
 gem "dm-migrations"

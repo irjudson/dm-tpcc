@@ -47,13 +47,18 @@ module DataMapper
       end
 
       def run_once
-      	  ::Benchmark.bm do |x|
-	    x.report("New Order   : ") { new_order    }
-            x.report("Payment     : ") { payment      }
-            x.report("Order Status: ") { order_status } 
-            x.report("Delivery    : ") { delivery     }
-            x.report("Stock Level : ") { stock_level  }
-	  end	    
+        sio = StringIO.new
+        old_stdout, $stdout = $stdout, sio
+  
+        ::Benchmark.bm(15) do |x|
+          x.report("New Order   : ") { new_order    }
+          x.report("Payment     : ") { payment      }
+          x.report("Order Status: ") { order_status } 
+          x.report("Delivery    : ") { delivery     }
+          x.report("Stock Level : ") { stock_level  }
+        end	    
+        $stdout = old_stdout
+        sio.string
       end
 
       def pick_customer(warehouse, district)
@@ -78,15 +83,19 @@ module DataMapper
 
       def new_order
         # Standard warehouse & district selections
-        warehouse = Warehouse.first(:offset => rand(Warehouse.count).to_i)   
-        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
-#        district = District.first(:warehouse_id => warehouse.id, :offset => rand(District.count)).
-        customer = district.customers.first(:offset => rand(district.customers.count))
-#        customer = district.customers.first(:offset => rand(district.customers.count))
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count).to_i)
+
+        districts = District.all(:warehouse => warehouse)
+        district = districts[rand(districts.count)]
+
+        customers = Customer.all(:district => district)
+        customer = customers[rand(customers.count)]
+
         num_items = DataMapper::TPCC::random(5,15) 
 
         cost = 0
-        order = Order.new(:created => Time.now, :line_count => num_items, :all_local => 1, :new_orders => [NewOrder.new] )
+        order = Order.new(:created => Time.now, :line_count => num_items, 
+                          :all_local => 1, :new_orders => [NewOrder.new] )
         district.next_order_number += 1
         num_items.times { |row|
           item = Item.get(DataMapper::TPCC::random_order_line_item_id)
