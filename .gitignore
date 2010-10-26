@@ -26,3 +26,5 @@ tpcc.db
 ## PROJECT::SPECIFIC
 *.dump
 data/*.yml
+data.orig
+runs
