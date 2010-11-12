@@ -4,14 +4,18 @@ This is a DataMapper specific implementation of the TPC-C
 Standard. Information on TPC-C can be found through the {Transaction
 Processing Council (TPC) website}[http://www.tpc.org/tpcc/].
 
-= TODO
+= NOTES
 
-* Refine initial data load to ensure relationships, types, values, and objects are used appropriately
-* Implement benchmarks
-* Create Generate, Save, and Load mechanisms for test data so that it can be quickly loaded when generation isn't desired.
+TPC-C allows for checkpoints and vacuums, but those aren't equivalent on all databases and they don't happen
+in typical web applications automatically. Therefore to make equivalent tests, we turn them off in TPCC-UVa.
+
+dm-cli: This is a great debugging tool; you can do dm -models lib/models -<other options>
+=> dm -c dm-cli-config.yml
+
+= TODO
+* Refine data model using tpcc-uva schema as a guide.
 
 Suggestions from others:
-
 * Decimal types for money?
 * Property validations?
 * String properties should/could use a range [1..20] instead of a length => 20
@@ -20,7 +24,7 @@ Suggestions from others:
 * define :minimum (0, 1) on integer properties to avoid negative values
 
 == Note on Patches/Pull Requests
- 
+
 * Fork the project.
 * Make your feature addition or bug fix.
 * Add tests for it. This is important so I don't break it in a

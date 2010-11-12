@@ -26,3 +26,4 @@ tpcc.db
 ## PROJECT::SPECIFIC
 *.dump
 data/*.yml
+log
