@@ -27,3 +27,5 @@ tpcc.db
 *.dump
 data/*.yml
 log
+data.orig
+runs
