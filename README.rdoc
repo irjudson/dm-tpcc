@@ -31,4 +31,4 @@ Suggestions from others:
 
 == Copyright
 
-Copyright (c) 2009 Montana State University. See LICENSE for details.
+Copyright (c) 2009-2010 Ivan R. Judson. See LICENSE for details.
