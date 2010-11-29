@@ -44,8 +44,8 @@ def main
 
   # This sets up the database/repository connections and creates the
   #  database structure. Pass the repository to use to setup.
-  DataMapper::TPCC::setup :default
   DataMapper::TPCC::init
+  DataMapper::TPCC::setup :default
 
   # This loads the initial test data into the database.
   # Pass a scale factor which is a number of warehouses to create
@@ -59,15 +59,17 @@ def main
     output = compare_random_string_algorithms
     $output.print output
     exit
-  elsif options.once
+  end
+
+  bm = DataMapper::TPCC::Benchmark.new
+
+  if options.once
     # This measures the performance of the database
-    bm = DataMapper::TPCC::Benchmark.new
     output = bm.run_once
     $output.print output
-  else
-    puts "You did not select any operations to perform. Quitting."
-    exit
   end
+
+  bm.run($output, options.time)
 end
 
 # Parse command line options.
@@ -88,11 +90,12 @@ END_HEADER
   options.log_destination = STDOUT
   options.db_url = { :adapter => :in_memory }
   options.generate = nil
-  options.time = -1
+  options.time = 60
   options.profile_strings = false
   options.output_filename = "dm-tpcc-#{timestamp}.out"
   options.data_directory = current_dir + "data"
   options.load = false
+  options.save_data = false
 
   opts = OptionParser.new do |opts|
     opts.banner = "Usage: dm-tpcc [options]"
@@ -105,7 +108,11 @@ END_HEADER
 
     opts.on("-s DIRECTORY_NAME", "--save DIRECTORY_NAME",
             "Save generated data for later use.") do |s| 
-      options.data_directory = s
+      options.data_directory = s unless (s.nil? || s.empty?)
+    end
+
+    opts.on("-S", "--save-data", "Save generated data for later use.") do |s| 
+      options.save_data = s
     end
 
     opts.on("-D", "--load-data", "Load data from saved datasets.") do |l|

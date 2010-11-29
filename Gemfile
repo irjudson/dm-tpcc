@@ -1,29 +1,35 @@
-source "http://rubygems.org"
-
-gem "ruby-debug19"
-
-# Core DataMapper gems
-gem "dm-core"
-gem "dm-migrations"
-gem "dm-transactions"
-gem "dm-aggregates"
-gem "dm-validations"
-gem "dm-sweatshop"
-
-# On Ubuntu this requires libsqlite3-dev
-gem "dm-sqlite-adapter"
+source :rubygems
+gemspec
 
 #
-gem "dm-postgres-adapter"
-
+# Development and Test Dependencies
 #
-gem "dm-persevere-adapter"
+group :development, :test do
+  # Development gems
+  gem "dm-cli"
+  gem "shotgun"
+  gem "racksh"
+  gem "sinatra-reloader"
+  gem "rake"
+  gem "jeweler"
+  gem "yard"
+  gem "yardstick"
 
-#
-gem "dm-rest-adapter"
+  # Testing gems
+  gem "rspec"
+  gem "rack-test"
+  gem "cucumber"
+  gem "autotest"
+  gem 'factory_girl'
 
-# On Ubuntu: sudo apt-get install libmysqlclient-dev
-gem "dm-mysql-adapter"
+  # 1.9 vs 1.8 issues
+  platforms(:mri_19) do
+    gem "ruby-debug19",       :require => "ruby-debug"
+    gem "rack-debug19",       :require => "rack-debug"
+  end
 
-# An alternative to ParseTree
-#gem "ruby_parser"
+  platforms(:mri_18) do
+    gem "ruby-debug"
+    gem "rack-debug"
+  end
+end

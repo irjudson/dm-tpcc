@@ -12,7 +12,7 @@ module DataMapper
         DataMapper::Model.descendants.each do |model|
           table_name = model.storage_name
           duration = ::Benchmark.realtime do
-            File.open("#{$data_directory}/#{table_name}.yml") do |fixture|
+            $data_directory.join("#{table_name}.yml").open do |fixture|
               YAML.each_document(fixture) do |ydoc|
                 ydoc.each do |row|
                   model.create(row[1])
@@ -93,7 +93,8 @@ module DataMapper
     def self.gen_customers(district_id, warehouse_id)
       duration = ::Benchmark.realtime do
         3000.times do
-          customer_id = Customer.gen(:district_id => district_id).id
+          customer_id = Customer.gen(:district_id => district_id, 
+                                     :warehouse_id => warehouse_id).id
           self.gen_history(customer_id, district_id, warehouse_id)
           self.gen_order(customer_id, district_id, warehouse_id)
         end

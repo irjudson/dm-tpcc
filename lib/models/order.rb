@@ -1,25 +1,32 @@
 class Order
   include DataMapper::Resource
 
-  property :id, Serial
-  property :created, DateTime
-  property :carrier, Integer
-  property :line_count, Integer
-  property :all_local, Integer
-  property :district_info, String
-  
-  has n, :new_orders
-  has n, :order_lines
-  
-  belongs_to :customer, :required => false
-  belongs_to :district, :required => false
-  belongs_to :warehouse, :required => false
+  #TPCCUVa seems to use orderr instead of order (?)
+  storage_names[:default]              = "orderr"
+
+  property :o_id, Serial
+  property :o_entry_d, DateTime
+  property :o_carrier_id, Integer
+  property :o_ol_cnt, Integer
+  property :o_all_local, Integer
+
+  has n, :new_orders,  :child_key      => [ :no_id ], :parent_key => [ :o_id ]
+  has n, :order_lines, :child_key      => [ :ol_id ], :parent_key => [ :o_id ]
+
+  # Relationship properties
+  property :o_c_id, Integer, :required => false
+  property :o_d_id, Integer, :required => false
+  property :o_w_id, Integer, :required => false
+  belongs_to :customer, :parent_key    => [ :c_id ], :child_key => [ :o_c_id ]
+  belongs_to :district, :parent_key    => [ :d_id ], :child_key => [ :o_d_id ]
+  belongs_to :warehouse,:parent_key    => [ :w_id ], :child_key => [ :o_w_id ]
 end
 
-Order.fixture {{
-  :carrier => DataMapper::TPCC::random_carrier_id,
-  :line_count => DataMapper::TPCC::random(5,15),
-  :all_local => 1,
-  :created => DateTime.now,
-  :district_info => DataMapper::TPCC::random_string(24,24)
-}}
+if DataMapper.constants.include?(:Sweatshop)
+  Order.fixture {{
+    :o_carrier_id                      => DataMapper::TPCC::random_carrier_id,
+    :o_ol_count                        => DataMapper::TPCC::random(5,15),
+    :o_all_local                       => 1,
+    :o_entry_d                         => DateTime.now,
+    }}
+end

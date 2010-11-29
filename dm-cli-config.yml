@@ -1,0 +1,5 @@
+:models:   lib/models
+:log_file: log/dm-cli.log
+:adapter:  postgres
+:host:     localhost
+:database: tpcc

@@ -8,29 +8,42 @@ module DataMapper
       #
       attr_accessor :transaction
       attr_accessor :perf_hash
+      processes = Array.new
 
       def initialize
         self.transaction = DataMapper::Transaction.new(repository(:default))
         self.perf_hash = Hash.new
       end
-      
-      def run(filename="benchmark.csv", duration=10)
-        outfile = File.open(filename, "w")
-        outfile.write(["Timestamp", "transaction", "user", "system", "total", "real"].join(",")+"\n")
+
+      def run(number_of_terminals, monitor=true, vacuum=true, duration=10)
+        # Fork the monitor
+        if monitor
+        end
+        # Fork the vacuumer
+        if vacuum
+        end
+        # Fork the terminals
+        number_of_terminals.times do |iteration|
+          terminal = new Terminal(iteration)
+          processes << fork { terminal.run }
+        end
+      end
+
+      def run(file, duration=10)
+        file.write(["Timestamp", "transaction", "user", "system", "total", "real"].join(",")+"\n")
         stack = make_stack
         elapsed_time = 0
         while elapsed_time < duration
-          stack.each do |card| 
+          stack.each do |card|
             ex_time = ::Benchmark.measure { Warehouse.transaction { self.send(card) } }
             elapsed_time += ex_time.real
             fmt = "%10.6u, %10.6y, %10.6t"
-            outfile.write("#{"%16s" % Time.now.to_f}, #{"%13s" % card.to_s}, #{ex_time.format(fmt)}, #{"%10.6f" % ex_time.real}\n")
+            file.write("#{"%16s" % Time.now.to_f}, #{"%13s" % card.to_s}, #{ex_time.format(fmt)}, #{"%10.6f" % ex_time.real}\n")
           end
           stack.sort{ |a,b| rand(3)-1 }
         end
-        outfile.close
       end
-       
+
       def make_stack
         # 10 new_order
         # 10 payment
@@ -49,14 +62,14 @@ module DataMapper
       def run_once
         sio = StringIO.new
         old_stdout, $stdout = $stdout, sio
-  
+
         ::Benchmark.bm(15) do |x|
           x.report("New Order   : ") { new_order    }
           x.report("Payment     : ") { payment      }
-          x.report("Order Status: ") { order_status } 
+          x.report("Order Status: ") { order_status }
           x.report("Delivery    : ") { delivery     }
           x.report("Stock Level : ") { stock_level  }
-        end	    
+        end
         $stdout = old_stdout
         sio.string
       end
@@ -67,10 +80,13 @@ module DataMapper
           # 60% by last name, 40% by customer id
           if DataMapper::TPCC::random(1,100) <= 60
             # last name
-            customer = district.customers.first(:last => DataMapper::TPCC::random_last_name)
+            customer = Customer.first(:district => district,
+                               :last => DataMapper::TPCC::random_last_name)
           else
             # id
-            customer = district.customers.first(:offset => DataMapper::TPCC::random(0,district.customers.count-1))
+            customers = Customer.count(:district => district)
+            customer = Customer.first(:district => district,
+            :offset => DataMapper::TPCC::random(0,customers-1))
           end
         end
         customer
@@ -91,10 +107,10 @@ module DataMapper
         customers = Customer.all(:district => district)
         customer = customers[rand(customers.count)]
 
-        num_items = DataMapper::TPCC::random(5,15) 
+        num_items = DataMapper::TPCC::random(5,15)
 
         cost = 0
-        order = Order.new(:created => Time.now, :line_count => num_items, 
+        order = Order.new(:created => Time.now, :line_count => num_items,
                           :all_local => 1, :new_orders => [NewOrder.new] )
         district.next_order_number += 1
         num_items.times { |row|
@@ -116,16 +132,17 @@ module DataMapper
           line_item = OrderLine.new(:line_number => row, :supply_warehouse_id => warehouse.id, :quantity => quantity)
           order.order_lines << line_item
         }
-        
+
         order.save
-        
+
         total_cost = cost * (1 - customer.discount) * ( 1 + warehouse.tax + district.tax)
       end
 
       def payment
         # Standard warehouse & district selections
-        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
-        district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))
+        districts = District.all(:warehouse => warehouse)
+        district = districts[rand(districts.count)]
 
         customer = pick_customer(warehouse, district)
 
@@ -138,7 +155,7 @@ module DataMapper
         customer.ytd_payments += amount
         customer.payment_count += 1
         if customer.credit == "BC"
-          update = "#{customer.id} - #{customer.district.id} - #{customer.warehouse.id} - #{district.id} - #{warehouse.id} - #{amount}"
+          update = "#{customer.id} - #{district.id} - #{warehouse.id} - #{district.id} - #{warehouse.id} - #{amount}"
           customer.data = update + customer.data[update.length, customer.data.length - update.length]
         end
         customer.histories << History.new(:created => payment_date, :amount => amount, :data => "#{warehouse.name}    #{district.name}")
@@ -149,7 +166,7 @@ module DataMapper
 
       def order_status
         # Standard warehouse & district selections
-        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))
         district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
 
         customer = pick_customer(warehouse, district)
@@ -164,14 +181,14 @@ module DataMapper
 
       def delivery
         # Standard warehouse selections
-        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))
         carrier = DataMapper::TPCC::random(1,10)
-        delivery_date = Time.now       
+        delivery_date = Time.now
 
         warehouse.districts.each do |district|
           new_order = NewOrder.first(:district => district)
-          unless new_order.nil? 
-            order = new_order.order 
+          unless new_order.nil?
+            order = new_order.order
             new_order.destroy
             order.carrier = carrier
             amount = 0
@@ -190,11 +207,11 @@ module DataMapper
 
       def stock_level
         # Standard warehouse & district selections
-        warehouse = Warehouse.first(:offset => rand(Warehouse.count))   
+        warehouse = Warehouse.first(:offset => rand(Warehouse.count))
         district = warehouse.districts.first(:offset => rand(warehouse.districts.count))
 
-        below_stock_threshold = 0    
-        threshold = rand(11)+10    
+        below_stock_threshold = 0
+        threshold = rand(11)+10
 
         Order.all(:district => district, :limit => 20, :order => [ :created.desc ]).order_lines.each do |item|
           if item.stock.quantity < threshold

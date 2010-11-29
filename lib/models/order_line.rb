@@ -1,27 +1,33 @@
 class OrderLine
   include DataMapper::Resource
 
-  property :id, Serial
-  property :line_number, Integer
-  property :item_code, Integer
-  property :supply_warehouse_id, Integer
-  property :delivery_date, DateTime
-  property :quantity, Integer
-  property :amount, Float
-  property :district_information, String, :length => 24
-  
-  belongs_to :stock, :required => false
-  belongs_to :order, :required => false
-  belongs_to :district, :required => false
-  belongs_to :warehouse, :required => false
+  storage_names[:default]                     = "order_line"
+
+  property :ol_number,        Integer, :key   => true
+  property :ol_i_id,          Integer
+  property :ol_supply_w_id,   Integer
+  property :ol_delivery_d,    DateTime
+  property :ol_quantity,      Integer
+  property :ol_amount,        Float
+  property :ol_dist_info,     String, :length => 24
+
+  # Relationship properties
+  property :ol_o_id, Integer, :key            => true
+  property :ol_d_id, Integer, :key            => true
+  property :ol_w_id, Integer, :key            => true
+  belongs_to :order,    :parent_key           => [ :o_id ], :child_key => [ :ol_o_id ]
+  belongs_to :district, :parent_key           => [ :d_id ], :child_key => [ :ol_d_id ]
+  belongs_to :warehouse,:parent_key           => [ :w_id ], :child_key => [ :ol_w_id ]
 end
 
-OrderLine.fixture {{
-  :line_number => /\d{1,8}/.gen,
-  :item_code => DataMapper::TPCC::random(0,100000),
-  :supply_warehouse_id => 1,
-  :delivery_date => DateTime.now,
-  :quantity => 5,
-  :amount => DataMapper::TPCC::random(0.01, 9999.99),
-  :district_information => /\w{24}/.gen
-}}
+if DataMapper.constants.include?(:Sweatshop)
+  OrderLine.fixture {{
+    :ol_number                                => /\d{1,8}/.gen,
+    :ol_i_id                                  => DataMapper::TPCC::random(0,100000),
+    :ol_supply_w_id                           => 1,
+    :ol_delivery_d                            => DateTime.now,
+    :ol_quantity                              => 5,
+    :ol_amount                                => DataMapper::TPCC::random(0.01, 9999.99),
+    :ol_district_info                         => /\w{24}/.gen
+    }}
+end
