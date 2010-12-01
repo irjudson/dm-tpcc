@@ -14,6 +14,7 @@ group :development, :test do
   gem "jeweler"
   gem "yard"
   gem "yardstick"
+  gem "dm-visualizer"
 
   # Testing gems
   gem "rspec"

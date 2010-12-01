@@ -29,3 +29,6 @@ data/*.yml
 log
 data.orig
 runs
+.yardoc/*
+diag*
+doc/*

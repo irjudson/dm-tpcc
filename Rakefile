@@ -5,6 +5,9 @@ rescue LoadError
   puts "Bundler is not installed. Install with: gem install bundler"
 end
 
+require 'dm-visualizer/rake/graphviz_task'
+DataMapper::Visualizer::Rake::GraphVizTask.new(:include => ['lib'], :require => ['lib/models'])
+
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
   gem.name        = %q{dm-tpcc}
